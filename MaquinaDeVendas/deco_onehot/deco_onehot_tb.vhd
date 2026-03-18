@@ -12,13 +12,13 @@ architecture Behavioral of deco_onehot_tb is
     component deco_onehot
         Port (
             prod  : in  std_logic_vector(3 downto 0);
-            price : out std_logic_vector(9 downto 0)
+            price : out std_logic_vector(10 downto 0)
         );
     end component;
 	
 	-- Signals para realizaç~ao dos testes --
     signal tb_prod  : std_logic_vector(3 downto 0) := (others => '0');
-    signal tb_price : std_logic_vector(9 downto 0);
+    signal tb_price : std_logic_vector(10 downto 0);
 
 begin
 uut: deco_onehot
