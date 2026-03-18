@@ -20,7 +20,7 @@ begin
 	-- verifica se tem troco 
 	tem_troco <= '1' when ( s_valor < 0) else '0';
 	-- Verifica se alcançou o valor suficiente
-	suf <= '1' when (valor <= 0) else '0';
+	valor_suf <= '1' when (valor <= 0) else '0';
 	end Behavioral;
 	
 	
