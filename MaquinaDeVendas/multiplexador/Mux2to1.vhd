@@ -8,8 +8,9 @@ entity Mux2to1 is
 	port(
 		valor,modulo: in std_logic_vector(10 down to 0);  
 		S				: in std_logic; 
-		X				: out std_logic_vector(10 down to 0));
-	end Mux2to1;
+		X				: out std_logic_vector(10 down to 0)
+	);
+end Mux2to1;
 	
 -- Arquitetura
 architecture Behavioral of Mux2to1 is

@@ -8,7 +8,7 @@ entity signal_state is
 	port(
 		valor			: in std_logic_vector(10 down to 0);
 		valor_suf	: out std_logic; 
-		tem_troco	: out std_logic;
+		tem_troco	: out std_logic
 	);
 end signal_state;
 
