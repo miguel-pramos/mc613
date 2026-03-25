@@ -14,7 +14,7 @@ entity reg4 is
 end entity reg4;
 
 -- Arquitetura
-architecture rtl of reg11 is
+architecture rtl of reg4 is
 	signal Q_reg : std_logic_vector(3 downto 0);
 begin
 	process(clk, reset)
