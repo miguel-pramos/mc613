@@ -1,6 +1,7 @@
 -- Biblioteca 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 -- Entidade 
 entity mod11_tb is
@@ -8,7 +9,7 @@ end entity;
 
 -- Arquitetura
 architecture sim of mod11_tb is
-    signal t_valor:     std_logic_vector(10 downto 0);
+    signal t_valor:     std_logic_vector(10 downto 0) :=(others => '0');
     signal t_modulo:    std_logic_vector(10 downto 0);
 begin  
     

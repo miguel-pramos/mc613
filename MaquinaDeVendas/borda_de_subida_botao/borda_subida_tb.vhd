@@ -60,6 +60,9 @@ begin
         wait for CLK_PERIOD;
         entrada <= '0';
         wait for CLK_PERIOD;
+		  
+		  entrada <= '1';
+		  wait for CLK_PERIOD;
         
         wait;
     end process stim_process;

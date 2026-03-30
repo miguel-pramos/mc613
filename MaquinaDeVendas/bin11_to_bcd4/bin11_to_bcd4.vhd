@@ -11,7 +11,7 @@ end entity;
 
 architecture rtl of bin11_to_bcd4 is
 begin
-  process(all)
+  process(bin)
     variable x   : unsigned(10 downto 0);
     variable acc : unsigned(15 downto 0);
   begin

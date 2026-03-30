@@ -189,6 +189,7 @@ begin
 
     -- LEDs de Saída
     LEDR(0) <= product_led_s; -- Produto Liberado
-    LEDR(1) <= tem_troco;     -- Indica que há troco a ser devolvido
+    LEDR(1) <= '1' when (timer_on_s = '1' and product_led_s = '0' and valor_inserido /= "00000000000") else 
+               tem_troco;     -- Indica que há troco a ser devolvido
 
 end Behavioral;
