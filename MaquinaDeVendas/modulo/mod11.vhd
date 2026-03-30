@@ -1,6 +1,7 @@
 --Biblioteca
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 -- Entidade
 entity mod11 is
@@ -11,8 +12,8 @@ entity mod11 is
 end mod11;
 
 -- Arquitetura
-architecture Behavioral of mod is
+architecture Behavioral of mod11 is
 begin
-	modulo <= std_logic_vector(-signed(valor)) when (signed(entrada) < 0) else valor
+	modulo <= std_logic_vector(-signed(valor)) when (signed(valor) < 0) else valor;
 end Behavioral;
 	

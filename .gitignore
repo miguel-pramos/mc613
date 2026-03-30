@@ -3,3 +3,6 @@
 **/db/
 **/*_description.txt
 **/*.bak
+**/TclScriptsHGB/
+**/*_nativelink_simulation.rpt
+**/simulation

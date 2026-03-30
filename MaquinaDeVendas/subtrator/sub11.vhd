@@ -1,6 +1,7 @@
 -- Biblioteca
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 -- Entidade 
 entity sub11 is
@@ -12,7 +13,7 @@ entity sub11 is
 end sub11;
 
 -- Arquitetura
-architecture behavioral of subtractor11 is
+architecture behavioral of sub11 is
 begin  
 	valor_final <= std_logic_vector( signed(valor_atual) - signed(valor_add) );
 end behavioral;

@@ -8,14 +8,12 @@ architecture tb of borda_subida_tb is
     component borda_subida is
         port (
             clk   : in  std_logic;
-            rst   : in  std_logic;
             entrada : in  std_logic;
             saida : out std_logic
         );
     end component borda_subida;
     
     signal clk   : std_logic := '0';
-    signal rst   : std_logic := '0';
     signal entrada : std_logic := '0';
     signal saida : std_logic;
     
@@ -24,7 +22,6 @@ architecture tb of borda_subida_tb is
 begin
     uut: borda_subida port map (
         clk => clk,
-        rst => rst,
         entrada => entrada,
         saida => saida
     );
@@ -39,12 +36,6 @@ begin
     
     stim_process: process
     begin
-        -- Reset
-        rst <= '1';
-        wait for CLK_PERIOD;
-        rst <= '0';
-        wait for CLK_PERIOD;
-        
         -- Teste 1: Borda de subida deve gerar saida = '1'
         entrada <= '1';
         wait for CLK_PERIOD;

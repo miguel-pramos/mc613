@@ -4,14 +4,14 @@ use IEEE.STD_LOGIC_1164.all;
 entity vending_machine is
     port (
         CLOCK_50 : in std_logic;
-        KEY : in std_logic_vector(1 downto 0);
+        KEY : in std_logic_vector(3 downto 0);
         SW : in std_logic_vector(9 downto 0);
         HEX0 : out std_logic_vector(6 downto 0);
         HEX1 : out std_logic_vector(6 downto 0);
         HEX2 : out std_logic_vector(6 downto 0);
         HEX3 : out std_logic_vector(6 downto 0);
         HEX5 : out std_logic_vector(6 downto 0);
-        LEDR : out std_logic_vector(1 downto 0)
+        LEDR : out std_logic_vector(7 downto 0)
     );
 end vending_machine;
 
@@ -19,6 +19,7 @@ architecture Behavioral of vending_machine is
     -- Sinais de controle interno
     signal enter_s          : std_logic;
     signal cancel_s         : std_logic;
+    signal reset_s          : std_logic;
     signal timer_end_s      : std_logic;
     
     signal product_enable_s     : std_logic;
@@ -34,7 +35,9 @@ architecture Behavioral of vending_machine is
     signal valor_produto        : std_logic_vector(10 downto 0);
     signal valor_notas          : std_logic_vector(10 downto 0);
     signal valor_modulo         : std_logic_vector(10 downto 0);
+	 signal valor_troco   		  : std_logic_vector(10 downto 0);
     signal valor_display        : std_logic_vector(10 downto 0);
+	 signal valor_inserido		  : std_logic_vector(10 downto 0);
     signal bcd                  : std_logic_vector(15 downto 0);
     signal enable_valor         : std_logic;
 
@@ -42,22 +45,27 @@ architecture Behavioral of vending_machine is
     signal tem_troco, valor_suf : std_logic;
 
 begin
-
-    -- Conexão das Entradas Físicas (Tratando KEY como active-low)
     borda_subida_0 : entity work.borda_subida 
         port map (
             clk         =>      CLOCK_50,
             entrada     =>      not KEY(0),
             saida       =>      enter_s
-        )
+        );
 
     borda_subida_1 : entity work.borda_subida 
         port map (
             clk         =>      CLOCK_50,
             entrada     =>      not KEY(1),
             saida       =>      cancel_s
-        )
+        );
 
+    borda_subida_reset : entity work.borda_subida 
+        port map (
+            clk         =>      CLOCK_50,
+            entrada     =>      not KEY(3),
+            saida       =>      reset_s
+        );
+        
     -- Máquina de controle
     maquina_de_controle : entity work.fsm
         port map (
@@ -66,6 +74,7 @@ begin
             enough_money       => valor_suf, -- Conectado ao módulo de estado
             timer_end          => timer_end_s,
             clk                => CLOCK_50,
+				reset					 => reset_s,
             product_enable     => product_enable_s,
             product_led        => product_led_s,
             subtraction_enable => subtraction_enable_s,
@@ -76,6 +85,7 @@ begin
     produto_reg : entity work.reg4
         port map (
             clk      => CLOCK_50,
+				reset 	=> reset_s,
             enable   => product_enable_s,
             D        => SW(3 downto 0),
             Q        => product
@@ -83,15 +93,18 @@ begin
 
     -- Registrador de Saldo (Valor Acumulado)
 
-    valor_proximo <= valor_produto when (subtraction_enable_s = '0') else 
-                    valor_sub;
-    enable_valor <= '1' when (subtraction_enable_s = '1' and enter_s = '1') else
-                          '1' when (subtraction_enable_s = '0') else
-                          '0';
+    valor_proximo <= valor_produto when (product_enable_s = '1') else 
+                     valor_sub;
+							
+    enable_valor <= '1' when (product_enable_s = '1') else
+                    '1' when (subtraction_enable_s = '1' and enter_s = '1') else 
+                    '0';
+						  
     valor_reg : entity work.reg11
         port map (
             clk      => CLOCK_50,
             enable   => enable_valor,
+				reset 	=> reset_s,
             D        => valor_proximo, 
             Q        => valor_atual
         );
@@ -110,6 +123,14 @@ begin
             valor_atual   => valor_atual,
             valor_add     => valor_notas,
             valor_final   => valor_sub
+        );
+		  
+		 -- Valor Inserido = Preço do Produto - Saldo Restante
+	 calc_devolucao : entity work.sub11
+        port map (
+            valor_atual   => valor_produto, -- Preço original do produto
+            valor_add     => valor_atual,   -- Saldo restante no registrador
+            valor_final   => valor_inserido -- Resultado: dinheiro a devolver
         );
 
     -- Conversor de Chaves para Valor de Nota
@@ -130,8 +151,7 @@ begin
     -- Módulo de Estado de Sinal (Compara Saldo vs Preço)
     status_sig : entity work.signal_state
         port map(
-            saldo       => valor_atual,
-            preco_prod  => valor_produto,
+            valor       => valor_atual,
             valor_suf   => valor_suf, -- Vai para a FSM
             tem_troco   => tem_troco
         );
@@ -145,12 +165,14 @@ begin
     
     mux_disp : entity work.Mux2to1
         port map(
-            A      => valor_atual,
-            B      => valor_modulo,
+            valor  => valor_atual,
+            modulo => valor_modulo,
             S      => tem_troco,
-            X      => valor_display
+            X      => valor_troco
         );
 
+	 valor_display <= valor_inserido when (timer_on_s = '1' and product_led_s = '0') else valor_troco;
+		  
     -- Decodificação para os Displays HEX
     bin_to_bcd : entity work.bin11_to_bcd4 
         port map (

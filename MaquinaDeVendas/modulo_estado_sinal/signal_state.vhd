@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 -- Entidade
 entity signal_state is
 	port(
-		valor			: in std_logic_vector(10 down to 0);
+		valor			: in std_logic_vector(10 downto 0);
 		valor_suf	: out std_logic; 
 		tem_troco	: out std_logic
 	);
@@ -20,7 +20,7 @@ begin
 	-- verifica se tem troco 
 	tem_troco <= '1' when ( s_valor < 0) else '0';
 	-- Verifica se alcançou o valor suficiente
-	valor_suf <= '1' when (valor <= 0) else '0';
+	valor_suf <= '0' when (signed(valor) > 0) else '1';
 	end Behavioral;
 	
 	

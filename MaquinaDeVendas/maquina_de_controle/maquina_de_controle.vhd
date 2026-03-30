@@ -52,7 +52,7 @@ begin
 			when ST_INSERE =>   -- insere_dinheiro
 				if cancel = '1' then
 					next_state <= ST_CANCELA;
-				elsif enter = '1' and enough_money = '1' then
+				elsif enough_money = '1' then
 						next_state <= ST_DISPENSA;
 				else
 					next_state <= ST_INSERE;	

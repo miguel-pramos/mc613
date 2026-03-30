@@ -6,9 +6,9 @@ use ieee.numeric_std.all;
 -- Entidade
 entity Mux2to1 is
 	port(
-		valor,modulo: in std_logic_vector(10 down to 0);  
+		valor, modulo: in std_logic_vector(10 downto 0);  
 		S				: in std_logic; 
-		X				: out std_logic_vector(10 down to 0)
+		X				: out std_logic_vector(10 downto 0)
 	);
 end Mux2to1;
 	
@@ -16,4 +16,4 @@ end Mux2to1;
 architecture Behavioral of Mux2to1 is
 begin
 	X <= valor when (S = '0') else modulo;
-	end Behavioral;
+end Behavioral;
