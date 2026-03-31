@@ -14,8 +14,8 @@ architecture sim of Mux2to1_tb is
 begin
     dut: entity work.Mux2to1
         port map(
-            A       => t_valor,    -- Note que usei A e B para combinar com a entidade Mux2to1
-            B       => t_modulo,
+            valor       => t_valor,    -- Note que usei A e B para combinar com a entidade Mux2to1
+            modulo      => t_modulo,
             S       => t_S,
             X       => t_X
         );
