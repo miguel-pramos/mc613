@@ -35,10 +35,10 @@ ARCHITECTURE behavioral OF oam_memory IS
 
     -- 3. Inicializando a memória.
     SIGNAL oam : oam_array := (
-        0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => x"01"),
-        1 => (x => TO_UNSIGNED(200, 10), y => TO_UNSIGNED(150, 10), id => x"02"),
-        2 => (x => TO_UNSIGNED(300, 10), y => TO_UNSIGNED(200, 10), id => x"03"),
-        3 => (x => TO_UNSIGNED(400, 10), y => TO_UNSIGNED(250, 10), id => x"04")
+        0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => "00000001"),
+        1 => (x => TO_UNSIGNED(200, 10), y => TO_UNSIGNED(150, 10), id => "00000010"),
+        2 => (x => TO_UNSIGNED(300, 10), y => TO_UNSIGNED(200, 10), id => "00000011"),
+        3 => (x => TO_UNSIGNED(400, 10), y => TO_UNSIGNED(250, 10), id => "00000100")
     );
 
 BEGIN
