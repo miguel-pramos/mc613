@@ -6,9 +6,9 @@ end entity;
 
 architecture tb of vending_machine_tb is
 
-    -- Sinais de estímulo / observação
+    -- Sinais de estímulo / observação (Nomes e tamanhos sincronizados com o Top-Level)
     signal CLOCK_50_s : std_logic := '0';
-    signal KEY_s      : std_logic_vector(1 downto 0) := (others => '1'); -- botões ativos em '0' na placa
+    signal KEY_s      : std_logic_vector(3 downto 0) := (others => '1'); -- Active-Low (1 = solto)
     signal SW_s       : std_logic_vector(9 downto 0) := (others => '0');
 
     signal HEX0_s     : std_logic_vector(6 downto 0);
@@ -16,13 +16,13 @@ architecture tb of vending_machine_tb is
     signal HEX2_s     : std_logic_vector(6 downto 0);
     signal HEX3_s     : std_logic_vector(6 downto 0);
     signal HEX5_s     : std_logic_vector(6 downto 0);
-    signal LEDR_s     : std_logic_vector(1 downto 0);
+    signal LEDR_s     : std_logic_vector(7 downto 0); -- Corrigido para 8 bits
 
     constant CLK_PERIOD : time := 20 ns;  -- 50 MHz
 
 begin
 
-    -- Instancia UUT
+    -- Instancia UUT (Unit Under Test)
     uut: entity work.vending_machine
         port map (
             CLOCK_50 => CLOCK_50_s,
@@ -36,82 +36,77 @@ begin
             LEDR     => LEDR_s
         );
 
-    -- Geração de clock
+    -- Geração de clock de 50MHz
     clk_process : process
     begin
-        while true loop
-            CLOCK_50_s <= '0';
-            wait for CLK_PERIOD/2;
-            CLOCK_50_s <= '1';
-            wait for CLK_PERIOD/2;
-        end loop;
-        wait; -- segurança
+        CLOCK_50_s <= '0';
+        wait for CLK_PERIOD/2;
+        CLOCK_50_s <= '1';
+        wait for CLK_PERIOD/2;
     end process;
 
-    -- Estímulos principais
+    -- Estímulos de teste
     stim_proc : process
     begin
-        -- Reset inicial: mantém tudo em nível inativo por algum tempo
+        -- RESET INICIAL (Usando KEY(3) conforme definido no Top-Level)
         SW_s  <= (others => '0');
-        KEY_s <= (others => '1');
-        wait for 200 ns;
+        KEY_s <= (others => '1'); -- Todos soltos
+        wait for 100 ns;
+        
+        KEY_s(3) <= '0'; -- Pressiona Reset (KEY 3)
+        wait for 2 * CLK_PERIOD;
+        KEY_s(3) <= '1'; -- Solta Reset
+        wait for 100 ns;
 
         -----------------------------------------------------------------
-        -- CENÁRIO 1: Compra simples, produto 0, inserindo valor exato
+        -- CENÁRIO 1: Compra de Produto 0 (Exemplo: 50 centavos)
         -----------------------------------------------------------------
-        -- Seleciona produto 0
-        SW_s(3 downto 0) <= "0000";
-        wait for 5*CLK_PERIOD;
+        -- 1. Seleciona ID do produto nos Switches 3..0
+        SW_s(3 downto 0) <= "0000"; 
+        wait for 5 * CLK_PERIOD;
 
-        -- Pressiona AVANÇAR (KEY(0) ativo em '0') para travar produto
-        KEY_s(0) <= '0';
-        wait for 1*CLK_PERIOD;
+        -- 2. Pressiona ENTER (KEY 0) para confirmar produto
+        KEY_s(0) <= '0'; -- Ativo em '0'
+        wait for 2 * CLK_PERIOD;
         KEY_s(0) <= '1';
-        wait for 10*CLK_PERIOD;
+        wait for 10 * CLK_PERIOD;
 
-        -- Insere uma nota, por exemplo SW(4) = 0,05 (apenas exemplo de uso)
-        SW_s(9 downto 4) <= "000001"; -- somente SW(4) = '1'
-        wait for 5*CLK_PERIOD;
+        -- 3. Insere Nota (Exemplo: Ativa Switch 4)
+        SW_s(4) <= '1'; 
+        wait for 5 * CLK_PERIOD;
 
-        -- Pressiona AVANÇAR para registrar a nota
+        -- 4. Pressiona ENTER (KEY 0) para registrar o crédito
         KEY_s(0) <= '0';
-        wait for 1*CLK_PERIOD;
+        wait for 2 * CLK_PERIOD;
         KEY_s(0) <= '1';
-        SW_s(9 downto 4) <= (others => '0');
-        wait for 20*CLK_PERIOD;
+        SW_s(4) <= '0'; -- Desativa switch após registrar
+        wait for 20 * CLK_PERIOD;
 
         -----------------------------------------------------------------
-        -- CENÁRIO 2: Cancelamento durante operação
+        -- CENÁRIO 2: Cancelamento de Operação
         -----------------------------------------------------------------
-        -- Seleciona produto 1
+        -- 1. Seleciona outro produto
         SW_s(3 downto 0) <= "0001";
-        wait for 5*CLK_PERIOD;
+        wait for 5 * CLK_PERIOD;
 
-        -- Travar produto
+        -- 2. Confirma produto (ENTER)
         KEY_s(0) <= '0';
-        wait for 1*CLK_PERIOD;
+        wait for 2 * CLK_PERIOD;
         KEY_s(0) <= '1';
-        wait for 5*CLK_PERIOD;
+        wait for 5 * CLK_PERIOD;
 
-        -- Simula inserção de dinheiro em SW(5)
-        SW_s(9 downto 4) <= "000010";
-        wait for 5*CLK_PERIOD;
-
-        KEY_s(0) <= '0';  -- AVANÇAR
-        wait for 1*CLK_PERIOD;
-        KEY_s(0) <= '1';
-        SW_s(9 downto 4) <= (others => '0');
-        wait for 10*CLK_PERIOD;
-
-        -- Agora cancela operação
-        KEY_s(1) <= '0'; -- CANCELAR ativo em '0'
-        wait for 1*CLK_PERIOD;
+        -- 3. Pressiona CANCELAR (KEY 1)
+        KEY_s(1) <= '0'; 
+        wait for 2 * CLK_PERIOD;
         KEY_s(1) <= '1';
-        wait for 100*CLK_PERIOD;
+        
+        -- Aguarda o tempo do Temporizador de 1 segundo (Simulação rápida)
+        wait for 100 * CLK_PERIOD;
 
         -----------------------------------------------------------------
         -- Fim da simulação
         -----------------------------------------------------------------
+        report "Fim da simulacao com sucesso!";
         wait;
     end process;
 

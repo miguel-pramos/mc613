@@ -26,6 +26,9 @@ architecture Behavioral of vending_machine is
     signal product_led_s        : std_logic;
     signal subtraction_enable_s : std_logic;
     signal timer_on_s           : std_logic;
+	 
+	 -- Sinais para tratar a logica invertida das chaves
+	 signal key0_inv, key1_inv, key3_inv : std_logic;
     
     -- Sinais de dados
     signal product              : std_logic_vector(3 downto 0);
@@ -45,27 +48,31 @@ architecture Behavioral of vending_machine is
     signal tem_troco, valor_suf : std_logic;
 
 begin
-    borda_subida_0 : entity work.borda_subida 
-        port map (
-            clk         =>      CLOCK_50,
-            entrada     =>      not KEY(0),
-            saida       =>      enter_s
-        );
+	key0_inv <= not KEY(0);
+	key1_inv <= not KEY(1);
+	key3_inv <= not KEY(3);
+		
+	 borda_subida_0 : entity work.borda_subida 
+		  port map (
+				clk         =>      CLOCK_50,
+				entrada     =>      key0_inv,
+				saida       =>      enter_s
+		  );
 
-    borda_subida_1 : entity work.borda_subida 
-        port map (
-            clk         =>      CLOCK_50,
-            entrada     =>      not KEY(1),
-            saida       =>      cancel_s
-        );
+	 borda_subida_1 : entity work.borda_subida 
+		  port map (
+				clk         =>      CLOCK_50,
+				entrada     =>      key1_inv,
+				saida       =>      cancel_s
+		  );
 
-    borda_subida_reset : entity work.borda_subida 
-        port map (
-            clk         =>      CLOCK_50,
-            entrada     =>      not KEY(3),
-            saida       =>      reset_s
-        );
-        
+	 borda_subida_reset : entity work.borda_subida 
+		  port map (
+				clk         =>      CLOCK_50,
+				entrada     =>      key3_inv,
+				saida       =>      reset_s
+		  );
+			  
     -- Máquina de controle
     maquina_de_controle : entity work.fsm
         port map (
@@ -191,5 +198,7 @@ begin
     LEDR(0) <= product_led_s; -- Produto Liberado
     LEDR(1) <= '1' when (timer_on_s = '1' and product_led_s = '0' and valor_inserido /= "00000000000") else 
                tem_troco;     -- Indica que há troco a ser devolvido
+					
+	 LEDR(7 downto 2) <= (others => '0');
 
 end Behavioral;
