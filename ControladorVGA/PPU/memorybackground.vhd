@@ -17,7 +17,7 @@ END memorybackground;
 
 ARCHITECTURE behavioral OF memorybackground IS
     -- A memória precisa de pelo menos 300 posições. Vamos criar com 512 (9 bits)
-    TYPE ram_array IS ARRAY (0 TO 511) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
+    TYPE ram_array IS ARRAY (0 TO 511) OF STD_LOGIC_VECTOR(8 DOWNTO 0);
     
     -- Função para inicializar a memória com os IDs dos tiles (0 a 299)
     IMPURE FUNCTION preencher_ram RETURN ram_array IS
