@@ -41,7 +41,7 @@ architecture behavioural of vga is
     signal video_on  : std_logic; -- Sinal interno para evitar leitura de porta 'out'
 
 begin
-    -- 1. Lógica dos Contadores
+    --  Lógica dos Contadores
     process(reset_n, pixel_clk)
     begin
         if reset_n = '0' then -- Corrigido para ativo baixo (padrão DE1-SoC)
@@ -61,21 +61,21 @@ begin
         end if;
     end process;
 
-    -- 2. Geração do sinal Video Active (usando os contadores internos)
+    --  Geração do sinal Video Active 
     video_on <= '1' when (x_counter < H_VISIBLE_AREA) and (y_counter < V_VISIBLE_AREA) else '0';
     video_active <= video_on;
 
-    -- 3. Saída das Coordenadas (Convertendo integer para std_logic_vector corretamente)
+    --  Saída das Coordenadas
     pixel_x <= std_logic_vector(to_unsigned(x_counter, 10));
     pixel_y <= std_logic_vector(to_unsigned(y_counter, 10));
 
-    -- 4. Sinais de Sincronização
+    --  Sinais de Sincronização
     VGA_HS <= '0' when (x_counter >= H_VISIBLE_AREA + H_FRONT_PORCH) and 
                        (x_counter < H_VISIBLE_AREA + H_FRONT_PORCH + H_SYNC_PULSE) else '1';
     VGA_VS <= '0' when (y_counter >= V_VISIBLE_AREA + V_FRONT_PORCH) and 
                        (y_counter < V_VISIBLE_AREA + V_FRONT_PORCH + V_SYNC_PULSE) else '1';
 
-    -- 5. Saídas Físicas da VGA
+    --  Saídas Físicas da VGA
     VGA_R       <= r_in when video_on = '1' else (others => '0');
     VGA_G       <= g_in when video_on = '1' else (others => '0');
     VGA_B       <= b_in when video_on = '1' else (others => '0');

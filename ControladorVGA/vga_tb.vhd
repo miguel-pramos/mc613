@@ -59,10 +59,10 @@ begin
     -- Estímulos
     stim_proc: process
     begin
-        -- Reset inicial (seu código usa reset ativo em '1' conforme a lógica interna que corrigimos)
-        rst_n <= '1'; 
+        
+        rst_n <= '0'; 
         wait for 100 ns;
-        rst_n <= '0';
+        rst_n <= '1';
         
         -- Cores fixas para teste (Branco)
         r_in <= x"FF";
@@ -71,7 +71,7 @@ begin
 
         -- Aguarda tempo suficiente para ver algumas linhas (H_TOTAL * CLK_PERIOD)
         -- Para ver um frame inteiro (640x480), levaria ~16.6ms
-        wait for 20 ms; 
+        wait for 40 ms; 
 
         report "Simulação finalizada";
         wait;
