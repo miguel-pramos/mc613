@@ -2,7 +2,7 @@ library ieee;
 use ieee.numeric.all;
 use ieee.std_logic_1164.all;
 
-entity vga_controller is
+entity vga is
   port (
     -- Entradas de Controle de Clock e Reset
     pixel_clk    : in  std_logic;                     -- Clock de 25.175 MHz gerado pelo PLL
@@ -28,7 +28,7 @@ entity vga_controller is
     VGA_SYNC_N   : out std_logic;                     -- Sincronização de vídeo
     VGA_CLK      : out std_logic                      -- Clock do pixel (espelho do pixel_clk)
     );
-end vga_controller;
+end vga;
 
 architecture behavioural of vga is
     constant H_VISIBLE_AREA : integer := 640;  -- Largura da área visível
