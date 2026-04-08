@@ -13,20 +13,21 @@ ARCHITECTURE behavioral OF tilesetmemory IS
   -- Criando um tipo de memória onde cada "linha" tem 128 bits de largura
   TYPE rom_array IS ARRAY (0 TO 255) OF STD_LOGIC_VECTOR (127 DOWNTO 0);
   
-  
   SIGNAL storage: rom_array := (
     -- TILE 0: Cor sólida Preta (ID da cor na paleta = x"00")
     -- Todos os 16 pixels têm o valor 00.
-    0 => x"000000000000000000000000000000000",
+    0 => x"00000000000000000000000000000000",
     
-    1 => x"000000000000000000000000000000000",
-
-    2 => x"000000000000000000000000000000000", 
-
-    3 => x"000000000000000000000000000000000",
+    -- TILE 1: Cor sólida Branca (ID da cor = x"01", considerando que 1 é branco na sua paleta)
+    -- Todos os 16 pixels têm o valor 01.
+    1 => x"01010101010101010101010101010101",
+    
+    -- TILE 2: O seu exemplo "1, 2, 3, 4..." (Cores variadas no mesmo tile)
+    -- Lendo da esquerda para a direita: Pixel 1=cor 01, Pixel 2=cor 02, etc.
+    2 => x"0102030405060708090A0B0C0D0E0F10", 
 
     -- Preenche os outros tiles com zeros (preto)
-    OTHERS => (OTHERS => '1')
+    OTHERS => (OTHERS => '0')
   );
 
 BEGIN
