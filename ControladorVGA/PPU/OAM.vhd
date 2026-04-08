@@ -33,7 +33,7 @@ ARCHITECTURE behavioral OF oam_memory IS
     -- 2. Nossa memória OAM é uma lista com 4 dessas "fichas" (Índices 0 a 3)
     TYPE oam_array IS ARRAY (0 TO 3) OF sprite_info;
 
-    -- 3. Inicializando a memória. 
+    -- 3. Inicializando a memória.
     SIGNAL oam : oam_array := (
         0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => x"01"),
         1 => (x => TO_UNSIGNED(200, 10), y => TO_UNSIGNED(150, 10), id => x"02"),
@@ -43,9 +43,7 @@ ARCHITECTURE behavioral OF oam_memory IS
 
 BEGIN
 
-    -- =======================================================
-    -- PROCESSO DE ESCRITA (Movimentação)
-    -- =======================================================
+    -- PROCESSO DE ESCRITA
     PROCESS(we, sprite_sel, in_x, in_y, in_id)
         VARIABLE index : INTEGER;
     BEGIN
@@ -57,9 +55,7 @@ BEGIN
         END IF;
     END PROCESS;
 
-    -- =======================================================
     -- PROCESSO DE LEITURA (Bounding Box / Hitbox)
-    -- =======================================================
     PROCESS(pixel_x, pixel_y, oam)
         VARIABLE px : UNSIGNED(9 DOWNTO 0);
         VARIABLE py : UNSIGNED(9 DOWNTO 0);
@@ -67,11 +63,10 @@ BEGIN
         px := UNSIGNED(pixel_x);
         py := UNSIGNED(pixel_y);
         
-        -- Começamos assumindo que o pixel atual é transparente (ID 0)
+        -- Começamos assumindo que o pixel atual é transparente
         sprite_id_out <= "00000000";
 
-        -- Verificamos os 4 sprites (do último para o primeiro).
-        -- Fazer do 3 DOWNTO 0 garante que o Sprite 0 tenha "prioridade" e desenhe por cima dos outros!
+        -- Verificamos os 4 sprites
         FOR i IN 3 DOWNTO 0 LOOP
             
             -- A MÁGICA: O pixel X está entre o Início do Sprite e o Fim dele (X + 32)? 
