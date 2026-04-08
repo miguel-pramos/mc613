@@ -5,14 +5,15 @@ use ieee.numeric_std.all;
 entity vga is
   port (
     pixel_clk    : in  std_logic;
-    reset_n      : in  std_logic;
+    reset_s      : in  std_logic;
     r_in         : in  std_logic_vector(7 downto 0);
     g_in         : in  std_logic_vector(7 downto 0);
     b_in         : in  std_logic_vector(7 downto 0);
     pixel_x      : out std_logic_vector(9 downto 0);
     pixel_y      : out std_logic_vector(9 downto 0);
     video_active : out std_logic;
-    VGA_R        : out std_logic_vector(7 downto 0);
+    
+	 VGA_R        : out std_logic_vector(7 downto 0);
     VGA_G        : out std_logic_vector(7 downto 0);
     VGA_B        : out std_logic_vector(7 downto 0);
     VGA_HS       : out std_logic;
@@ -31,9 +32,9 @@ architecture behavioural of vga is
     constant H_TOTAL        : integer := H_VISIBLE_AREA + H_FRONT_PORCH + H_SYNC_PULSE + H_BACK_PORCH;
     
     constant V_VISIBLE_AREA : integer := 480;
-    constant V_FRONT_PORCH  : integer := 10;
+    constant V_FRONT_PORCH  : integer := 11;
     constant V_SYNC_PULSE   : integer := 2;
-    constant V_BACK_PORCH   : integer := 33;
+    constant V_BACK_PORCH   : integer := 31;
     constant V_TOTAL        : integer := V_VISIBLE_AREA + V_FRONT_PORCH + V_SYNC_PULSE + V_BACK_PORCH;
 
     signal x_counter : integer range 0 to H_TOTAL - 1 := 0;
@@ -42,9 +43,9 @@ architecture behavioural of vga is
 
 begin
     -- 1. Lógica dos Contadores
-    process(reset_n, pixel_clk)
+    process(reset_s, pixel_clk)
     begin
-        if reset_n = '0' then -- Corrigido para ativo baixo (padrão DE1-SoC)
+        if reset_s = '1' then
             x_counter <= 0;
             y_counter <= 0;
         elsif rising_edge(pixel_clk) then
@@ -80,7 +81,7 @@ begin
     VGA_G       <= g_in when video_on = '1' else (others => '0');
     VGA_B       <= b_in when video_on = '1' else (others => '0');
     VGA_BLANK_N <= video_on;
-    VGA_SYNC_N  <= '0'; -- Na DE1-SoC, SYNC_N geralmente é '0' se não usar Sync-on-Green
+    VGA_SYNC_N  <= '1';
     VGA_CLK     <= pixel_clk;
 
 end behavioural;
