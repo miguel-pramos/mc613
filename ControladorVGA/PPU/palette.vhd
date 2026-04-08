@@ -17,16 +17,17 @@ ARCHITECTURE behavioral OF tilesetmemory IS
   
   
   SIGNAL red_intens: rom_array := (
+    0 => "XXXXXXXX", -- cor 0: transparente (RGB 000-000-000)
 
-    0 => "00000000", -- Tile 0: preto (RGB 000-000-00)
+    1 => "00000000", -- cor 1: preto (RGB 000-000-000)
     
-    1 => "11111111", -- Tile 1: branco (RGB 111-111-11)
+    2 => "11111111", -- cor 2: branco (RGB 111-111-111)
 
-    2 => "11111111", -- Tile 2: vermelho (RGB 111-000-00)
+    3 => "11111111", -- cor 3: vermelho (RGB 111-000-000)
 
-    3 => "00000000", -- Tile 3: verde (RGB 000-111-00)
+    4 => "00000000", -- cor 4: verde (RGB 000-111-000)
 
-    4 => "00000000", -- Tile 4: azul (RGB 000-000-11)
+    5 => "00000000", -- cor 5: azul (RGB 000-000-111)
 
     -- Preenche os outros tiles com zeros (preto)
     OTHERS => "00000000"
@@ -34,15 +35,17 @@ ARCHITECTURE behavioral OF tilesetmemory IS
 
   SIGNAL green_intens: rom_array := (
 
-    0 => "00000000", -- Tile 0: preto (RGB 000-000-00)
+    0 => "XXXXXXXX", -- cor 0: transparente (RGB 000-000-000)
 
-    1 => "11111111", -- Tile 1: branco (RGB 111-111-11)
+    1 => "00000000", -- cor 1: preto (RGB 000-000-000)
 
-    2 => "00000000", -- Tile 2: vermelho (RGB 111-000-00)
+    2 => "11111111", -- cor 2: branco (RGB 111-111-111)
 
-    3 => "11111111", -- Tile 3: verde (RGB 000-111-00)
+    3 => "00000000", -- cor 3: vermelho (RGB 111-000-000)
 
-    4 => "00000000", -- Tile 4: azul (RGB 000-000-11)
+    4 => "11111111", -- cor 4: verde (RGB 000-111-000)
+
+    5 => "00000000", -- cor 5: azul (RGB 000-000-111)
 
     -- Preenche os outros tiles com zeros (preto)
     OTHERS => "00000000"
@@ -50,15 +53,17 @@ ARCHITECTURE behavioral OF tilesetmemory IS
 
   SIGNAL blue_intens: rom_array := (
 
-    0 => "00000000", -- Tile 0: preto (RGB 000-000-00)
+    0 => "XXXXXXXX", -- cor 0: transparente (RGB 000-000-000)
 
-    1 => "11111111", -- Tile 1: branco (RGB 111-111-11)
+    1 => "00000000", -- cor 1: preto (RGB 000-000-000)
 
-    2 => "00000000", -- Tile 2: vermelho (RGB 111-000-00)
+    2 => "11111111", -- cor 2: branco (RGB 111-111-111)
 
-    3 => "00000000", -- Tile 3: verde (RGB 000-111-00)
+    3 => "00000000", -- cor 3: vermelho (RGB 111-000-000)
 
-    4 => "11111111", -- Tile 4: azul (RGB 000-000-11)
+    4 => "00000000", -- cor 4: verde (RGB 000-111-000)
+
+    5 => "11111111", -- cor 5: azul (RGB 000-000-111)
 
     -- Preenche os outros tiles com zeros (preto)
     OTHERS => "00000000"
