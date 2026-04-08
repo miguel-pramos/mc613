@@ -47,10 +47,6 @@ BEGIN
     begin		
         -- Aguarda o sistema estabilizar
         wait for 100 ns;
-
-        -- ==========================================
-        -- FASE 1: TESTANDO A LEITURA (POSIÇÕES INICIAIS)
-        -- ==========================================
         
         -- Teste A: Pixel vazio (0,0). Esperado: ID 00000000 (transparente)
         pixel_x <= std_logic_vector(to_unsigned(0, 10));
