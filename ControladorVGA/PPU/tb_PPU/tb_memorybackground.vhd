@@ -3,7 +3,6 @@ USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY tb_memorybackground IS
--- Testbench não possui portas
 END tb_memorybackground;
 
 ARCHITECTURE behavior OF tb_memorybackground IS
