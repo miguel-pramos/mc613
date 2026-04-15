@@ -25,21 +25,25 @@ END ppu;
 
 ARCHITECTURE structural OF ppu IS
 
-    SIGNAL pixel_x    : STD_LOGIC_VECTOR(9 DOWNTO 0);
-    SIGNAL pixel_y    : STD_LOGIC_VECTOR(9 DOWNTO 0);
-    SIGNAL video_on   : STD_LOGIC;
+    -- ==========================================
+    -- DECLARAÇÃO DOS SINAIS INTERNOS (Os Fios)
+    -- ==========================================
+    SIGNAL fio_pixel_x    : STD_LOGIC_VECTOR(9 DOWNTO 0);
+    SIGNAL fio_pixel_y    : STD_LOGIC_VECTOR(9 DOWNTO 0);
+    SIGNAL fio_video_on   : STD_LOGIC;
     
-    SIGNAL sprite_id  : STD_LOGIC_VECTOR(2 DOWNTO 0);
-    SIGNAL sprite_x   : STD_LOGIC_VECTOR(9 DOWNTO 0);
-    SIGNAL sprite_y   : STD_LOGIC_VECTOR(9 DOWNTO 0);
+    SIGNAL fio_sprite_id  : STD_LOGIC_VECTOR(2 DOWNTO 0);
+    SIGNAL fio_sprite_x   : STD_LOGIC_VECTOR(9 DOWNTO 0);
+    SIGNAL fio_sprite_y   : STD_LOGIC_VECTOR(9 DOWNTO 0);
     
-    SIGNAL cor_sprite : STD_LOGIC_VECTOR(2 DOWNTO 0);
-    SIGNAL cor_fundo  : STD_LOGIC_VECTOR(2 DOWNTO 0);
-    SIGNAL cor_final  : STD_LOGIC_VECTOR(2 DOWNTO 0);
+    SIGNAL fio_cor_sprite : STD_LOGIC_VECTOR(2 DOWNTO 0);
+    SIGNAL fio_cor_fundo  : STD_LOGIC_VECTOR(2 DOWNTO 0);
+    SIGNAL fio_cor_final  : STD_LOGIC_VECTOR(2 DOWNTO 0);
 
     -- ==========================================
-    -- DECLARAÇÃO DOS COMPONENTES
+    -- DECLARAÇÃO DOS COMPONENTES (Os Chips)
     -- ==========================================
+    -- (Nota: Ajuste os nomes das portas se os seus ficheiros diferirem ligeiramente)
     
     COMPONENT video_timing_generator
         PORT (
@@ -101,7 +105,7 @@ ARCHITECTURE structural OF ppu IS
 BEGIN
 
     -- ==========================================
-    -- INSTANCIAÇÃO E LIGAÇÃO
+    -- INSTANCIAÇÃO E LIGAÇÃO (A Soldadura)
     -- ==========================================
 
     -- 1. O Gerador de Vídeo (O coração do ecrã)
@@ -110,9 +114,9 @@ BEGIN
         reset    => reset,
         hsync    => VGA_HSYNC,
         vsync    => VGA_VSYNC,
-        video_on => video_on,
-        pixel_x  => pixel_x,
-        pixel_y  => pixel_y
+        video_on => fio_video_on,
+        pixel_x  => fio_pixel_x,
+        pixel_y  => fio_pixel_y
     );
 
     -- 2. OAM (O Diretor dos Sprites)
@@ -123,51 +127,51 @@ BEGIN
         in_x          => cpu_x,
         in_y          => cpu_y,
         in_id         => cpu_id,
-        pixel_x       => pixel_x,
-        pixel_y       => pixel_y,
-        sprite_id_out => sprite_id,
-        sprite_x_out  => sprite_x,
-        sprite_y_out  => sprite_y
+        pixel_x       => fio_pixel_x,
+        pixel_y       => fio_pixel_y,
+        sprite_id_out => fio_sprite_id,
+        sprite_x_out  => fio_sprite_x,
+        sprite_y_out  => fio_sprite_y
     );
 
     -- 3. Sprite Memory (A Biblioteca de Imagens)
     inst_sprite_mem: sprite_memory PORT MAP (
-        sprite_id  => sprite_id,
-        pixel_x    => pixel_x,
-        pixel_y    => pixel_y,
-        sprite_x   => sprite_x,
-        sprite_y   => sprite_y,
-        bitmap_out => cor_sprite
+        sprite_id  => fio_sprite_id,
+        pixel_x    => fio_pixel_x,
+        pixel_y    => fio_pixel_y,
+        sprite_x   => fio_sprite_x,
+        sprite_y   => fio_sprite_y,
+        bitmap_out => fio_cor_sprite
     );
 
     -- 4. Background (Tileset)
     inst_tileset: tileset_memory PORT MAP (
-        tile_id  => '0',          -- Por enquanto deixamos fixo no Tile 0 (ou você pode ligar no seu Tilemap)
-        pixel_x  => fio_pixel_x,  -- Recebe o X do Gerador de Vídeo
-        pixel_y  => fio_pixel_y,  -- Recebe o Y do Gerador de Vídeo
-        color_id => fio_cor_fundo -- Manda a cor do fundo para o Layer Selector!
+        tile_id  => fio_tile_id,
+        pixel_x  => fio_pixel_x,
+        pixel_y  => fio_pixel_y,
+        color_id => fio_cor_fundo
     );
 
     -- 5. Layer Selector (Decide quem fica por cima)
     inst_layer: layer_selector PORT MAP (
-        bg_color     => cor_fundo,
-        sprite_color => cor_sprite,
-        final_color  => cor_final
+        bg_color     => fio_cor_fundo,
+        sprite_color => fio_cor_sprite,
+        final_color  => fio_cor_final
     );
 
     -- 6. Paleta Simples (Passa de 3 bits para as cores do VGA)
     -- Se tiver um ficheiro palette.vhd, instancie-o aqui. 
     -- Como teste, vamos apenas encaminhar os bits:
-    PROCESS(cor_final, video_on)
+    PROCESS(fio_cor_final, fio_video_on)
     BEGIN
-        IF video_on = '0' THEN
+        IF fio_video_on = '0' THEN
             VGA_R <= "0000"; VGA_G <= "0000"; VGA_B <= "0000";
         ELSE
             -- Se for a cor 1 (ex: Vermelho)
-            IF cor_final = "001" THEN
+            IF fio_cor_final = "001" THEN
                 VGA_R <= "1111"; VGA_G <= "0000"; VGA_B <= "0000";
             -- Se for a cor 3 (ex: Branco)
-            ELSIF cor_final = "011" THEN
+            ELSIF fio_cor_final = "011" THEN
                 VGA_R <= "1111"; VGA_G <= "1111"; VGA_B <= "1111";
             ELSE
                 VGA_R <= "0000"; VGA_G <= "0000"; VGA_B <= "0000";
