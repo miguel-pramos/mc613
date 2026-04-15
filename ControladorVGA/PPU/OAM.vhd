@@ -17,8 +17,10 @@ ENTITY oam_memory IS
         pixel_x     : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); 
         pixel_y     : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); 
         
-        -- Saída síncrona: Bit(2) é "Existe Sprite?", Bits(1 downto 0) é o ID
-        sprite_id_out : OUT STD_LOGIC_VECTOR (2 DOWNTO 0) 
+        -- Saídas para a "Sprite Memory"
+        sprite_id_out : OUT STD_LOGIC_VECTOR (2 DOWNTO 0); 
+        sprite_x_out  : OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+        sprite_y_out  : OUT STD_LOGIC_VECTOR (9 DOWNTO 0)   
     );
 END oam_memory;
 
@@ -33,10 +35,10 @@ ARCHITECTURE behavioral OF oam_memory IS
     TYPE oam_array IS ARRAY (0 TO 3) OF sprite_info;
 
     SIGNAL oam : oam_array := (
-        0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => "00"),
-        1 => (x => TO_UNSIGNED(200, 10), y => TO_UNSIGNED(150, 10), id => "01"),
-        2 => (x => TO_UNSIGNED(300, 10), y => TO_UNSIGNED(200, 10), id => "10"),
-        3 => (x => TO_UNSIGNED(400, 10), y => TO_UNSIGNED(250, 10), id => "11")
+        0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => "00"), -- Topo Esquerda
+        1 => (x => TO_UNSIGNED(132, 10), y => TO_UNSIGNED(100, 10), id => "01"), -- Topo Direita (+32 no X)
+        2 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(132, 10), id => "10"), -- Baixo Esquerda (+32 no Y)
+        3 => (x => TO_UNSIGNED(132, 10), y => TO_UNSIGNED(132, 10), id => "11")  -- Baixo Direita (+32 em X e Y)
     );
 
 BEGIN
@@ -61,16 +63,19 @@ BEGIN
             px := UNSIGNED(pixel_x);
             py := UNSIGNED(pixel_y);
             
-            -- Valor padrão (nada detectado)
-            sprite_id_out <= "000"; 
+            sprite_id_out <= "000";
+            sprite_x_out  <= (OTHERS => '0'); 
+            sprite_y_out  <= (OTHERS => '0'); 
 
-            -- O loop agora acontece dentro da borda de clock
-            FOR i IN 0 TO 3 LOOP
+            -- O loop de detecção
+            FOR i IN 3 DOWNTO 0 LOOP
                 IF (px >= oam(i).x) AND (px < (oam(i).x + 32)) AND
                    (py >= oam(i).y) AND (py < (oam(i).y + 32)) THEN
-                    
+                   
                     sprite_id_out <= '1' & oam(i).id;
                     
+                    sprite_x_out  <= STD_LOGIC_VECTOR(oam(i).x);
+                    sprite_y_out  <= STD_LOGIC_VECTOR(oam(i).y);
                 END IF;
             END LOOP;
             
