@@ -2,16 +2,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity vga_controller_tb is
-end vga_controller_tb;
+entity vga_tb is
+end vga_tb;
 
-architecture sim of vga_controller_tb is
+architecture sim of vga_tb is
 
     -- Sinais para conectar ao componente
     signal clk          : std_logic := '0';
     signal rst_n        : std_logic := '0';
     signal r_in, g_in, b_in : std_logic_vector(7 downto 0) := (others => '0');
-    
+     
     signal pixel_x, pixel_y : std_logic_vector(9 downto 0);
     signal video_active     : std_logic;
     
