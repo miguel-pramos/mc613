@@ -4,7 +4,7 @@ USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY palette_memory IS
   PORT (
-    id_tile    : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Entrada: Qual tile queremos ler
+    id_color    : IN  STD_LOGIC_VECTOR (2 DOWNTO 0);   -- Entrada: id da cor
     red        : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Saída: vermelho
     green      : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Saída: verde
     blue       : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)    -- Saída: azul
@@ -71,9 +71,9 @@ ARCHITECTURE behavioral OF palette_memory IS
 
 BEGIN
   -- O circuito entrega o bitmap completo instantaneamente baseado no ID
-  red   <= red_intens(TO_INTEGER(UNSIGNED(id_tile)));
-  green <= green_intens(TO_INTEGER(UNSIGNED(id_tile)));
-  blue  <= blue_intens(TO_INTEGER(UNSIGNED(id_tile)));
+  red   <= red_intens(TO_INTEGER(UNSIGNED(id_color)));
+  green <= green_intens(TO_INTEGER(UNSIGNED(id_color)));
+  blue  <= blue_intens(TO_INTEGER(UNSIGNED(id_color)));
 
 END behavioral;
 
