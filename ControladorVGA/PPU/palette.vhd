@@ -17,7 +17,7 @@ ARCHITECTURE behavioral OF tilesetmemory IS
   
   
   SIGNAL red_intens: rom_array := (
-    0 => "XXXXXXXX", -- cor 0: transparente (RGB 000-000-000)
+    0 => "00000000", -- cor 0: transparente (RGB 000-000-000)
 
     1 => "00000000", -- cor 1: preto (RGB 000-000-000)
     
@@ -35,7 +35,7 @@ ARCHITECTURE behavioral OF tilesetmemory IS
 
   SIGNAL green_intens: rom_array := (
 
-    0 => "XXXXXXXX", -- cor 0: transparente (RGB 000-000-000)
+    0 => "00000000", -- cor 0: transparente (RGB 000-000-000)
 
     1 => "00000000", -- cor 1: preto (RGB 000-000-000)
 
@@ -53,7 +53,7 @@ ARCHITECTURE behavioral OF tilesetmemory IS
 
   SIGNAL blue_intens: rom_array := (
 
-    0 => "XXXXXXXX", -- cor 0: transparente (RGB 000-000-000)
+    0 => "00000000", -- cor 0: transparente (RGB 000-000-000)
 
     1 => "00000000", -- cor 1: preto (RGB 000-000-000)
 
