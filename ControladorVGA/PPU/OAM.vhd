@@ -4,82 +4,77 @@ USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY oam_memory IS
     PORT (
+        clk         : IN  STD_LOGIC;                   
+        
         -- Interface de Escrita
-        we          : IN  STD_LOGIC;                     -- 1 = Salvar nova posição
-        sprite_sel  : IN  STD_LOGIC_VECTOR (1 DOWNTO 0); -- Escolhe qual sprite mover (00, 01, 10, 11)
-        in_x        : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); -- Nova coordenada X do sprite
-        in_y        : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); -- Nova coordenada Y do sprite
-        in_id       : IN  STD_LOGIC_VECTOR (7 DOWNTO 0); -- Novo ID visual do sprite
+        we          : IN  STD_LOGIC;                     
+        sprite_sel  : IN  STD_LOGIC_VECTOR (1 DOWNTO 0); 
+        in_x        : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); 
+        in_y        : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); 
+        in_id       : IN  STD_LOGIC_VECTOR (1 DOWNTO 0); 
         
         -- Interface de Leitura 
-        pixel_x     : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); -- X atual da tela
-        pixel_y     : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); -- Y atual da tela
+        pixel_x     : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); 
+        pixel_y     : IN  STD_LOGIC_VECTOR (9 DOWNTO 0); 
         
-        -- Saída para a "Sprite Memory"
-        sprite_id_out : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
+        -- Saída síncrona: Bit(2) é "Existe Sprite?", Bits(1 downto 0) é o ID
+        sprite_id_out : OUT STD_LOGIC_VECTOR (2 DOWNTO 0) 
     );
 END oam_memory;
 
 ARCHITECTURE behavioral OF oam_memory IS
 
-    -- 1. Criação do tipo "Ficha de Sprite" (RECORD)
-    -- Isso agrupa as 3 informações vitais de um objeto
     TYPE sprite_info IS RECORD
         x  : UNSIGNED(9 DOWNTO 0);
         y  : UNSIGNED(9 DOWNTO 0);
-        id : STD_LOGIC_VECTOR(7 DOWNTO 0);
+        id : STD_LOGIC_VECTOR(1 DOWNTO 0);
     END RECORD;
 
-    -- 2. Nossa memória OAM é uma lista com 4 dessas "fichas" (Índices 0 a 3)
     TYPE oam_array IS ARRAY (0 TO 3) OF sprite_info;
 
-    -- 3. Inicializando a memória.
     SIGNAL oam : oam_array := (
-        0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => "00000001"),
-        1 => (x => TO_UNSIGNED(200, 10), y => TO_UNSIGNED(150, 10), id => "00000010"),
-        2 => (x => TO_UNSIGNED(300, 10), y => TO_UNSIGNED(200, 10), id => "00000011"),
-        3 => (x => TO_UNSIGNED(400, 10), y => TO_UNSIGNED(250, 10), id => "00000100")
+        0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => "00"),
+        1 => (x => TO_UNSIGNED(200, 10), y => TO_UNSIGNED(150, 10), id => "01"),
+        2 => (x => TO_UNSIGNED(300, 10), y => TO_UNSIGNED(200, 10), id => "10"),
+        3 => (x => TO_UNSIGNED(400, 10), y => TO_UNSIGNED(250, 10), id => "11")
     );
 
 BEGIN
 
-    -- PROCESSO DE ESCRITA
-    PROCESS(we, sprite_sel, in_x, in_y, in_id)
-        VARIABLE index : INTEGER;
-    BEGIN
-        index := TO_INTEGER(UNSIGNED(sprite_sel));
-        IF we = '1' THEN
-            oam(index).x  <= UNSIGNED(in_x);
-            oam(index).y  <= UNSIGNED(in_y);
-            oam(index).id <= in_id;
-        END IF;
-    END PROCESS;
-
-    -- PROCESSO DE LEITURA (Bounding Box / Hitbox)
-    PROCESS(pixel_x, pixel_y, oam)
+    -- PROCESSO ÚNICO SÍNCRONO
+    PROCESS(clk)
         VARIABLE px : UNSIGNED(9 DOWNTO 0);
         VARIABLE py : UNSIGNED(9 DOWNTO 0);
+        VARIABLE index_write : INTEGER;
     BEGIN
-        px := UNSIGNED(pixel_x);
-        py := UNSIGNED(pixel_y);
-        
-        -- Começamos assumindo que o pixel atual é transparente
-        sprite_id_out <= "00000000";
-
-        -- Verificamos os 4 sprites
-        FOR i IN 3 DOWNTO 0 LOOP
+        IF rising_edge(clk) THEN
             
-            -- A MÁGICA: O pixel X está entre o Início do Sprite e o Fim dele (X + 32)? 
-            -- E o pixel Y está entre o Topo do Sprite e o Fundo dele (Y + 32)?
-            IF (px >= oam(i).x) AND (px < (oam(i).x + 32)) AND
-               (py >= oam(i).y) AND (py < (oam(i).y + 32)) THEN
-                
-                -- Se bateu na área do sprite, joga o ID dele para a saída!
-                sprite_id_out <= oam(i).id;
-                
+            -- LÓGICA DE ESCRITA
+            index_write := TO_INTEGER(UNSIGNED(sprite_sel));
+            IF we = '1' THEN
+                oam(index_write).x  <= UNSIGNED(in_x);
+                oam(index_write).y  <= UNSIGNED(in_y);
+                oam(index_write).id <= in_id;
             END IF;
-        END LOOP;
-        
+
+            -- LÓGICA DE LEITURA (Síncrona)
+            px := UNSIGNED(pixel_x);
+            py := UNSIGNED(pixel_y);
+            
+            -- Valor padrão (nada detectado)
+            sprite_id_out <= "000"; 
+
+            -- O loop agora acontece dentro da borda de clock
+            FOR i IN 0 TO 3 LOOP
+                IF (px >= oam(i).x) AND (px < (oam(i).x + 32)) AND
+                   (py >= oam(i).y) AND (py < (oam(i).y + 32)) THEN
+                    
+                    sprite_id_out <= '1' & oam(i).id;
+                    
+                END IF;
+            END LOOP;
+            
+        END IF;
     END PROCESS;
 
 END behavioral;
