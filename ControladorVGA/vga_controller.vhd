@@ -26,6 +26,12 @@ architecture Behavioral of vga_controller is
     constant blue : integer := 125;
     constant green : integer := 125;
 
+    type offset_array is array (0 to 3) of unsigned(9 downto 0);
+    constant OFFSET_X : offset_array := (to_unsigned(0, 10), to_unsigned(32, 10),
+                                        to_unsigned(0, 10), to_unsigned(32, 10));
+    constant OFFSET_Y : offset_array := (to_unsigned(0, 10), to_unsigned(0, 10),
+                                        to_unsigned(32, 10), to_unsigned(32, 10));
+
     signal reset_s : std_logic := '0';
     signal pll_clk : std_logic;
     signal pll_locked : std_logic := '0';
@@ -38,12 +44,24 @@ architecture Behavioral of vga_controller is
 
     signal video_active : std_logic;
 
-    -- Controle de sprites
-    signal we : std_logic := '0';
+    ------- Controle de sprites e PPU -------
+    signal sprt_we, bg_we : std_logic := '0';
     signal oam_x, oam_y : std_logic_vector(9 downto 0);
     signal logo_x, logo_y : std_logic_vector(9 downto 0);
     signal sprite_sel, : std_logic_vector (1 downto 0);
     signal oam_sprite_id : std_logic_vector (2 downto 0);
+
+    signal bg_tile_in : std_logic;
+    signal bg_tile_id : std_logic;
+    signal bg_write_addr : std_logic_vector(8 downto 0) := (others => '0');
+
+    signal vsync_old : std_logic := '0';
+    signal sprt_update_active : std_logic := '0';
+    signal bg_update_active : std_logic := '0';
+
+    -- cores
+    signal bg_color_id : std_logic_vector(2 dowto 0);
+    signal sprite_color_id : std_logic_vector(2 dowto 0);
 
 begin
     -- Clock de pixel
@@ -85,10 +103,12 @@ begin
             b_in => blue_s
         );
 
+    ------------------- PPU ------------------
+
     oam : entity work.oam_memory
         port map(
             clk => CLOCK_50
-            we => we,
+            sprt_we => sprt_we,
             pixel_x => oam_x,
             pixel_y => oam_y,
 
@@ -96,6 +116,33 @@ begin
             sprite_id => sprite_sel,
             sprite_id_out => oam_sprite_id
         );
+
+    bg_mem : entity work.memorybackground
+        port map(
+            clk => CLOCK_50,
+            sprt_we => bg_we,
+            write_addr => bg_write_addr,
+            
+            data_in => bg_tile_in,
+            pixel_x => pixel_x,
+            pixel_y => pixel_y,
+
+            tile_id_out => bg_tile_id
+        );
+
+    tileset_bg : entity work.tileset_memory
+        port map(
+
+            tile_id => bg_tile_id, 
+
+            pixel_x => pixel_x,
+            pixel_y => pixel_y,
+
+            -- Saída: Id da cor
+            color_id => bg_pixel_color
+        );
+
+    --------------------------------------
 
     mvmt : entity work.sprt_movement
         port map(
@@ -106,52 +153,92 @@ begin
             pos_y => logo_y
         );
 
+    fsm : entity work.fsm_interface
+        port map(
+            clk => CLOCK_50,
+            reset => reset_s,
+            key_signal => not KEY(1),
+            bg_tile => bg_tile_in
+        );
+
+    -- atualização dos sprites
     process (CLOCK_50)
         variable v_count : integer range 0 to 3 := 0;
     begin
         if rising_edge(CLOCK_50) then
-            if v_sync = '0' then
-                we <= '1';
+            vsync_old <= VGA_VS; -- atualiza no fim do clock
+
+            -- Borda de descida
+            if vsync_old = '1' and VGA_VS = '0' then
+
+                sprt_update_active <= '1';
+                v_count <= 0;
+            end if;
+
+            if sprt_update_active = '1' then
+                sprt_we <= '1';
                 sprite_sel <= std_logic_vector(to_unsigned(v_count, 2));
 
-                in_x <= std_logic_vector(unsigned(logo_x) + offset_x(v_count));
-                in_y <= std_logic_vector(unsigned(logo_y) + offset_y(v_count));
+                in_x <= std_logic_vector(unsigned(logo_x) + OFFSET_X(v_count));
+                in_y <= std_logic_vector(unsigned(logo_y) + OFFSET_Y(v_count));
 
                 if v_count = 3 then
-                    v_count := 0;
-                    update_done <= '1'; -- Terminou a rajada de 4 escritas
+                    sprt_update_active <= '0';
                 else
                     v_count := v_count + 1;
                 end if;
-
             else
-                we <= '0';
+                sprt_we <= '0';
             end if;
         end if;
 
     end process;
 
-    process (pixel_x, video_active)
+    -- atualização do Background
+    process (CLOCK_50)
     begin
-        if video_active = '1' then
-            if unsigned(pixel_x) < 213 then
-                red_s <= (others => '1'); -- Vermelho puro
-                green_s <= (others => '0');
-                blue_s <= (others => '0');
-            elsif unsigned(pixel_x) < 427 then
-                red_s <= (others => '0');
-                green_s <= (others => '1'); -- Verde puro
-                blue_s <= (others => '0');
-            else
-                red_s <= (others => '0');
-                green_s <= (others => '0'); -- Verde puro
-                blue_s <= (others => '1');
+        if rising_edge(CLOCK_50) then
+            if vsync_old = '1' and VGA_VS = '0' then
+                bg_update_active <= '1';
+                bg_count <= 0;
             end if;
-        else
-            red_s <= (others => '0');
-            green_s <= (others => '0');
-            blue_s <= (others => '0');
+
+            if bg_update_active = '1' then
+                bg_we <= '1';
+                bg_write_addr <= std_logic_vector(to_unsigned(bg_count, 9));
+
+                if bg_count = 511 then
+                    bg_update_active <= '0';
+                else
+                    bg_count <= bg_count + 1;
+                end if;
+            else
+                bg_we <= '0';
+            end if;
         end if;
     end process;
+
+    -- process (pixel_x, video_active)
+    -- begin
+    --     if video_active = '1' then
+    --         if unsigned(pixel_x) < 213 then
+    --             red_s <= (others => '1'); -- Vermelho puro
+    --             green_s <= (others => '0');
+    --             blue_s <= (others => '0');
+    --         elsif unsigned(pixel_x) < 427 then
+    --             red_s <= (others => '0');
+    --             green_s <= (others => '1'); -- Verde puro
+    --             blue_s <= (others => '0');
+    --         else
+    --             red_s <= (others => '0');
+    --             green_s <= (others => '0'); -- Verde puro
+    --             blue_s <= (others => '1');
+    --         end if;
+    --     else
+    --         red_s <= (others => '0');
+    --         green_s <= (others => '0');
+    --         blue_s <= (others => '0');
+    --     end if;
+    -- end process;
 
 end Behavioral;

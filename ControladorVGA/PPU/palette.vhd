@@ -2,16 +2,16 @@ LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 
-ENTITY tilesetmemory IS
+ENTITY palette_memory IS
   PORT (
-    id_tile    : IN  STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Entrada: Qual tile queremos ler
+    id_color    : IN  STD_LOGIC_VECTOR (2 DOWNTO 0);   -- Entrada: id da cor
     red        : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Saída: vermelho
     green      : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Saída: verde
     blue       : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)    -- Saída: azul
   );
-END tilesetmemory;
+END palette_memory; 
 
-ARCHITECTURE behavioral OF tilesetmemory IS
+ARCHITECTURE behavioral OF palette_memory IS
   -- Criando um tipo de memória onde cada "linha" tem 128 bits de largura
   TYPE rom_array IS ARRAY (0 TO 255) OF STD_LOGIC_VECTOR (7 DOWNTO 0);
   
@@ -71,9 +71,9 @@ ARCHITECTURE behavioral OF tilesetmemory IS
 
 BEGIN
   -- O circuito entrega o bitmap completo instantaneamente baseado no ID
-  red   <= red_intens(TO_INTEGER(UNSIGNED(id_tile)));
-  green <= green_intens(TO_INTEGER(UNSIGNED(id_tile)));
-  blue  <= blue_intens(TO_INTEGER(UNSIGNED(id_tile)));
+  red   <= red_intens(TO_INTEGER(UNSIGNED(id_color)));
+  green <= green_intens(TO_INTEGER(UNSIGNED(id_color)));
+  blue  <= blue_intens(TO_INTEGER(UNSIGNED(id_color)));
 
 END behavioral;
 
