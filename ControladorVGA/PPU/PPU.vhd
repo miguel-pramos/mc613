@@ -39,6 +39,7 @@ ARCHITECTURE structural OF ppu IS
     SIGNAL fio_cor_sprite : STD_LOGIC_VECTOR(2 DOWNTO 0);
     SIGNAL fio_cor_fundo  : STD_LOGIC_VECTOR(2 DOWNTO 0);
     SIGNAL fio_cor_final  : STD_LOGIC_VECTOR(2 DOWNTO 0);
+	 SIGNAL fio_tile_id    : STD_LOGIC;
 
     -- ==========================================
     -- DECLARAÇÃO DOS COMPONENTES (Os Chips)

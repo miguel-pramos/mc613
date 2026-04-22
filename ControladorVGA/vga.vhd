@@ -13,7 +13,7 @@ entity vga is
     pixel_y      : out std_logic_vector(9 downto 0);
     video_active : out std_logic;
     
-	 VGA_R        : out std_logic_vector(7 downto 0);
+	VGA_R        : out std_logic_vector(7 downto 0);
     VGA_G        : out std_logic_vector(7 downto 0);
     VGA_B        : out std_logic_vector(7 downto 0);
     VGA_HS       : out std_logic;

@@ -52,7 +52,7 @@ set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH sprt_movement -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH PPU -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME vga -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id vga
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME vga_controller_tb -section_id vga
@@ -65,6 +65,26 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME fsm_control_tb -section_i
 set_global_assignment -name EDA_TEST_BENCH_NAME mux -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id mux
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME mux_ppu_tb -section_id mux
+set_global_assignment -name EDA_TEST_BENCH_NAME sprt_movement -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id sprt_movement
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME sprt_movement_tb -section_id sprt_movement
+set_global_assignment -name EDA_TEST_BENCH_NAME PPU -section_id eda_simulation
+set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id PPU
+set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_ppu -section_id PPU
+set_global_assignment -name EDA_TEST_BENCH_FILE vga.vhd -section_id vga
+set_global_assignment -name EDA_TEST_BENCH_FILE vga_tb.vhd -section_id vga
+set_global_assignment -name EDA_TEST_BENCH_FILE fms_animacao.vhd -section_id fsm
+set_global_assignment -name EDA_TEST_BENCH_FILE fsm_interface.vhd -section_id fsm
+set_global_assignment -name EDA_TEST_BENCH_FILE fsm_tb.vhd -section_id fsm
+set_global_assignment -name EDA_TEST_BENCH_FILE PPU/mux_ppu.vhd -section_id mux
+set_global_assignment -name EDA_TEST_BENCH_FILE PPU/mux_ppu_tb.vhd -section_id mux
+set_global_assignment -name EDA_TEST_BENCH_FILE sprt_movement.vhd -section_id sprt_movement
+set_global_assignment -name EDA_TEST_BENCH_FILE sprt_movement_tb.vhd -section_id sprt_movement
+set_global_assignment -name EDA_TEST_BENCH_FILE PPU/PPU.vhd -section_id PPU
+set_global_assignment -name EDA_TEST_BENCH_FILE PPU/PPU_tb.vhd -section_id PPU
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name VHDL_FILE PPU/spritememory.vhd
+set_global_assignment -name VHDL_FILE PPU/PPU.vhd
 set_global_assignment -name VHDL_FILE sprt_movement.vhd
 set_global_assignment -name VHDL_FILE PPU/OAM.vhd
 set_global_assignment -name VHDL_FILE PPU/memorybackground.vhd
@@ -81,16 +101,4 @@ set_global_assignment -name VHDL_FILE PPU/mux_ppu.vhd
 set_global_assignment -name VHDL_FILE PPU/mux_ppu_tb.vhd
 set_global_assignment -name SOURCE_FILE db/vga.cmp.rdb
 set_global_assignment -name VHDL_FILE sprt_movement_tb.vhd
-set_global_assignment -name EDA_TEST_BENCH_NAME sprt_movement -section_id eda_simulation
-set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id sprt_movement
-set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME sprt_movement_tb -section_id sprt_movement
-set_global_assignment -name EDA_TEST_BENCH_FILE vga.vhd -section_id vga
-set_global_assignment -name EDA_TEST_BENCH_FILE vga_tb.vhd -section_id vga
-set_global_assignment -name EDA_TEST_BENCH_FILE fms_animacao.vhd -section_id fsm
-set_global_assignment -name EDA_TEST_BENCH_FILE fsm_interface.vhd -section_id fsm
-set_global_assignment -name EDA_TEST_BENCH_FILE fsm_tb.vhd -section_id fsm
-set_global_assignment -name EDA_TEST_BENCH_FILE PPU/mux_ppu.vhd -section_id mux
-set_global_assignment -name EDA_TEST_BENCH_FILE PPU/mux_ppu_tb.vhd -section_id mux
-set_global_assignment -name EDA_TEST_BENCH_FILE sprt_movement.vhd -section_id sprt_movement
-set_global_assignment -name EDA_TEST_BENCH_FILE sprt_movement_tb.vhd -section_id sprt_movement
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name VHDL_FILE PPU/PPU_tb.vhd
