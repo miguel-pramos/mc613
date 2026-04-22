@@ -36,9 +36,9 @@ ARCHITECTURE behavioral OF oam_memory IS
 
     SIGNAL oam : oam_array := (
         0 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(100, 10), id => "00"), -- Topo Esquerda
-        1 => (x => TO_UNSIGNED(132, 10), y => TO_UNSIGNED(100, 10), id => "01"), -- Topo Direita (+32 no X)
+        1 => (x => TO_UNSIGNED(116, 10), y => TO_UNSIGNED(100, 10), id => "01"), -- Topo Direita (+32 no X)
         2 => (x => TO_UNSIGNED(100, 10), y => TO_UNSIGNED(132, 10), id => "10"), -- Baixo Esquerda (+32 no Y)
-        3 => (x => TO_UNSIGNED(132, 10), y => TO_UNSIGNED(132, 10), id => "11")  -- Baixo Direita (+32 em X e Y)
+        3 => (x => TO_UNSIGNED(116, 10), y => TO_UNSIGNED(132, 10), id => "11")  -- Baixo Direita (+32 em X e Y)
     );
 
 BEGIN
@@ -69,8 +69,8 @@ BEGIN
 
             -- O loop de detecção
             FOR i IN 3 DOWNTO 0 LOOP
-                IF (px >= oam(i).x) AND (px < (oam(i).x + 32)) AND
-                   (py >= oam(i).y) AND (py < (oam(i).y + 32)) THEN
+                IF (px >= oam(i).x) AND (px < (oam(i).x + 16)) AND
+                   (py >= oam(i).y) AND (py < (oam(i).y + 16)) THEN
                    
                     sprite_id_out <= '1' & oam(i).id;
                     

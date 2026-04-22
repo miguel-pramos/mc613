@@ -12,8 +12,8 @@ ENTITY sprite_memory IS
         sprite_x    : IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
         sprite_y    : IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
         
-        bitmap_out  : OUT STD_LOGIC_VECTOR (2 DOWNTO 0)
-		  clk 			: IN STD_LOGIC;
+        bitmap_out  : OUT STD_LOGIC_VECTOR (2 DOWNTO 0);
+		  clk 			: IN STD_LOGIC
     );
 END sprite_memory;
 
@@ -226,7 +226,8 @@ ARCHITECTURE behavioral OF sprite_memory IS
 		 252 => "00", 253 => "00", 254 => "00", 255 => "00",
 		 others => "00"
 	 );
-    SIGNAL rom_pedaco_4 : rom_array:= (
+
+    constant rom_pedaco_4 : rom_array:= (
 		    0 => "00", 1 => "00", 2 => "10", 3 => "00",
 			 4 => "00", 5 => "00", 6 => "10", 7 => "10",
 			 8 => "10", 9 => "10", 10 => "10", 11 => "10",
@@ -294,45 +295,44 @@ ARCHITECTURE behavioral OF sprite_memory IS
 			 others => "00"
 	 );
 
-    -- Sinais internos
-    SIGNAL intra_x   : INTEGER RANGE 0 TO 15;
-    SIGNAL intra_y   : INTEGER RANGE 0 TO 15;
-    SIGNAL read_addr : INTEGER RANGE 0 TO 255;
-    
-    SIGNAL id_cor    : STD_LOGIC_VECTOR(1 DOWNTO 0);
+     -- Sinais internos
+SIGNAL intra_x       : INTEGER RANGE 0 TO 15;
+    SIGNAL intra_y       : INTEGER RANGE 0 TO 15;
+    SIGNAL read_addr     : INTEGER RANGE 0 TO 255;
+    SIGNAL id_cor_2bits  : STD_LOGIC_VECTOR(1 DOWNTO 0);
 
 BEGIN
-    -- 1. Sua Matemática Original (Perfeita!)
+
+    -- Cálculo da posição relativa dentro do bloco 16x16
     intra_x <= TO_INTEGER(UNSIGNED(pixel_x) - UNSIGNED(sprite_x)) MOD 16;
     intra_y <= TO_INTEGER(UNSIGNED(pixel_y) - UNSIGNED(sprite_y)) MOD 16;
 
-    -- O endereço agora não precisa multiplicar pelo ID, pois as memórias são separadas!
-    read_addr <= (intra_y * 32) + intra_x;
+    -- Cálculo do endereço: Linha * Largura + Coluna
+    read_addr <= (intra_y * 16) + intra_x;
 
-    -- 2. Lemos o mesmo pixel nas 4 memórias ao mesmo tempo
-    -- 5. Processo Síncrono de Leitura
-    -- Isso garante que o Quartus use os blocos M10K corretamente
+    -- Processo Síncrono de Leitura
     process(clk)
     begin
         if rising_edge(clk) then
-            -- Primeiro verificamos se o sprite está "ativo" (bit 2)
+            -- Se o bit 2 do ID for '0', o sprite está desativado (transparente)
             if sprite_id(2) = '0' then
                 id_cor_2bits <= "00";
             else
-                -- Seleciona qual pedaço ler baseado no ID
                 case sprite_id(1 downto 0) is
                     when "00" => id_cor_2bits <= rom_pedaco_1(read_addr);
-                    when "01" => id_cor_2bits <= "00"; -- rom_pedaco_2
-                    when "10" => id_cor_2bits <= "00"; -- rom_pedaco_3
-                    when "11" => id_cor_2bits <= "00"; -- rom_pedaco_4
+                    when "01" => id_cor_2bits <= rom_pedaco_2(read_addr);
+                    when "10" => id_cor_2bits <= rom_pedaco_3(read_addr);
+                    when "11" => id_cor_2bits <= rom_pedaco_4(read_addr);
                     when others => id_cor_2bits <= "00";
                 end case;
             end if;
         end if;
     end process;
 
-    -- 4. O seu filtro de Transparência! 
-    -- Se o bit 2 (o mais significativo) for '0', forçamos a saída toda para transparente!
-    bitmap_out <= "0" WHEN & id_cor;
+    -- Tradução combinacional de 2 bits para 3 bits (Lógica de Cores)
+    -- Tradução solicitada: '01' -> '101', '10' -> '100', outros -> '000'
+    bitmap_out <= "101" when id_cor_2bits = "01" else
+                  "100" when id_cor_2bits = "10" else
+                  "000";
 
 END behavioral;

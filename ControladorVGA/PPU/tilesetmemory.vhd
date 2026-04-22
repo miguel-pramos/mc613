@@ -23,9 +23,9 @@ ARCHITECTURE behavioral OF tileset_memory IS
     BEGIN
         FOR i IN 0 TO 2047 LOOP
             IF i < 1024 THEN
-                tmp_rom(i) := "001"; -- Cor do Tile 0 
+                tmp_rom(i) := "010"; -- Cor do Tile 0 branco
             ELSE
-                tmp_rom(i) := "010"; -- Cor do Tile 1 
+                tmp_rom(i) := "011"; -- Cor do Tile 1 rosa
             END IF;
         END LOOP;
         

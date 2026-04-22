@@ -27,12 +27,15 @@ architecture Behavioral of vga_controller is
     constant green : integer := 125;
 
     type offset_array is array (0 to 3) of unsigned(9 downto 0);
-    constant OFFSET_X : offset_array := (to_unsigned(0, 10), to_unsigned(32, 10),
-                                        to_unsigned(0, 10), to_unsigned(32, 10));
+    constant OFFSET_X : offset_array := (to_unsigned(0, 10), to_unsigned(16, 10),
+                                        to_unsigned(0, 10), to_unsigned(16, 10));
     constant OFFSET_Y : offset_array := (to_unsigned(0, 10), to_unsigned(0, 10),
-                                        to_unsigned(32, 10), to_unsigned(32, 10));
+                                        to_unsigned(16, 10), to_unsigned(16, 10));
 
-    signal reset_s : std_logic := '0';
+    signal v_sync : std_logic;
+
+    signal reset_s : std_logic;
+    signal bg_s : std_logic;
     signal pll_clk : std_logic;
     signal pll_locked : std_logic := '0';
 
@@ -48,9 +51,10 @@ architecture Behavioral of vga_controller is
     signal sprt_we, bg_we : std_logic := '0';
     signal oam_x, oam_y : std_logic_vector(9 downto 0);
     signal logo_x, logo_y : std_logic_vector(9 downto 0);
-    signal sprite_sel, : std_logic_vector (1 downto 0);
+    signal sprite_sel : std_logic_vector (1 downto 0);
     signal oam_sprite_id : std_logic_vector (2 downto 0);
 
+    signal bg_tile_fsm : std_logic;
     signal bg_tile_in : std_logic;
     signal bg_tile_id : std_logic;
     signal bg_write_addr : std_logic_vector(8 downto 0) := (others => '0');
@@ -60,14 +64,27 @@ architecture Behavioral of vga_controller is
     signal bg_update_active : std_logic := '0';
 
     -- cores
-    signal bg_color_id : std_logic_vector(2 dowto 0);
-    signal sprite_color_id : std_logic_vector(2 dowto 0);
+    signal bg_color_id : std_logic_vector(2 downto 0);
+    signal sprite_color_id : std_logic_vector(2 downto 0) := "000";
+    signal final_color_id : std_logic_vector(1 downto 0);
+
+    -- Sinais que saem da Palette e entram no Mux
+    signal pal_red_out : std_logic_vector(7 downto 0);
+    signal pal_green_out : std_logic_vector(7 downto 0);
+    signal pal_blue_out : std_logic_vector(7 downto 0);
 
 begin
     -- Clock de pixel
     VGA_CLK <= pll_clk;
 
     reset_s <= not KEY(0);
+
+    edge_detector_bg : entity work.borda_subida
+        port map(
+            clk => CLOCK_50,
+            entrada => not KEY(1), -- Botões na DE1 são ativos em baixo (0)
+            saida => bg_s
+        );
 
     pll_u : entity work.pll
         port map(
@@ -87,7 +104,7 @@ begin
             VGA_BLANK_N => VGA_BLANK_N,
             VGA_SYNC_N => VGA_SYNC_N,
             VGA_HS => VGA_HS,
-            VGA_VS => VGA_VS,
+            VGA_VS => v_sync,
             VGA_CLK => VGA_CLK,
 
             pixel_x => pixel_x,
@@ -107,22 +124,40 @@ begin
 
     oam : entity work.oam_memory
         port map(
-            clk => CLOCK_50
-            sprt_we => sprt_we,
-            pixel_x => oam_x,
-            pixel_y => oam_y,
+            clk => pll_clk,
+            we => sprt_we,
+            pixel_x => pixel_x,
+            pixel_y => pixel_y,
+
+            in_x => oam_x,
+            in_y => oam_y,
 
             sprite_sel => sprite_sel,
-            sprite_id => sprite_sel,
+            in_id => sprite_sel,
             sprite_id_out => oam_sprite_id
         );
 
+    tileset_sprt : entity work.sprite_memory
+        port map(
+            clk => pll_clk,
+            sprite_id => oam_sprite_id,
+
+            pixel_x => pixel_x,
+            pixel_y => pixel_y,
+
+            sprite_x => logo_x,
+            sprite_y => logo_y,
+
+            bitmap_out => sprite_color_id
+        );
+
+
     bg_mem : entity work.memorybackground
         port map(
-            clk => CLOCK_50,
-            sprt_we => bg_we,
+            clk => pll_clk,
+            we => bg_we,
             write_addr => bg_write_addr,
-            
+
             data_in => bg_tile_in,
             pixel_x => pixel_x,
             pixel_y => pixel_y,
@@ -133,21 +168,51 @@ begin
     tileset_bg : entity work.tileset_memory
         port map(
 
-            tile_id => bg_tile_id, 
+            tile_id => bg_tile_id,
 
             pixel_x => pixel_x,
             pixel_y => pixel_y,
 
             -- Saída: Id da cor
-            color_id => bg_pixel_color
+            color_id => bg_color_id
         );
 
+    layer_selector : entity work.layer_selector
+        port map(
+            color_bg => bg_color_id,
+            color_sprite => sprite_color_id,
+            color_out => final_color_id
+        );
+
+    palette : entity work.palette_memory
+        port map(
+            id_color => final_color_id,
+            red => pal_red_out,
+            green => pal_green_out,
+            blue => pal_blue_out
+        );
+
+    ppu_mux : entity work.mux_ppu
+        port map(
+            clk => pll_clk, -- Clock de pixel
+            video_active => video_active,
+
+            -- Entradas vindas da Palette
+            red => pal_red_out,
+            green => pal_green_out,
+            blue => pal_blue_out,
+
+            -- Saídas que vão para o controlador VGA
+            vga_red => red_s,
+            vga_green => green_s,
+            vga_blue => blue_s
+        );
     --------------------------------------
 
     mvmt : entity work.sprt_movement
         port map(
             clk_vga => pll_clk,
-            v_sync => VGA_VS,
+            v_sync => v_sync,
             reset => reset_s,
             pos_x => logo_x,
             pos_y => logo_y
@@ -157,30 +222,41 @@ begin
         port map(
             clk => CLOCK_50,
             reset => reset_s,
-            key_signal => not KEY(1),
-            bg_tile => bg_tile_in
+            key_signal => bg_s,
+            bg_tile => bg_tile_fsm
         );
 
     -- atualização dos sprites
-    process (CLOCK_50)
+    process (pll_clk)
+        variable delay_count : integer range 0 to 4 := 0;
         variable v_count : integer range 0 to 3 := 0;
+
     begin
-        if rising_edge(CLOCK_50) then
-            vsync_old <= VGA_VS; -- atualiza no fim do clock
+        if rising_edge(pll_clk) then
+            vsync_old <= v_sync; -- atualiza no fim do clock
 
             -- Borda de descida
-            if vsync_old = '1' and VGA_VS = '0' then
+            if vsync_old = '1' and v_sync = '0' then
+                sprt_update_active <= '0';
+                delay_count := 1;
 
-                sprt_update_active <= '1';
-                v_count <= 0;
+                v_count := 0;
+
+            elsif delay_count > 0 then
+                if delay_count = 4 then
+                    delay_count := 0;
+                    sprt_update_active <= '1';
+                else
+                    delay_count := delay_count + 1;
+                end if;
             end if;
 
             if sprt_update_active = '1' then
                 sprt_we <= '1';
                 sprite_sel <= std_logic_vector(to_unsigned(v_count, 2));
 
-                in_x <= std_logic_vector(unsigned(logo_x) + OFFSET_X(v_count));
-                in_y <= std_logic_vector(unsigned(logo_y) + OFFSET_Y(v_count));
+                oam_x <= std_logic_vector(unsigned(logo_x) + OFFSET_X(v_count));
+                oam_y <= std_logic_vector(unsigned(logo_y) + OFFSET_Y(v_count));
 
                 if v_count = 3 then
                     sprt_update_active <= '0';
@@ -195,22 +271,29 @@ begin
     end process;
 
     -- atualização do Background
-    process (CLOCK_50)
+    process (pll_clk)
+        variable bg_count : integer range 0 to 511 := 0;
     begin
-        if rising_edge(CLOCK_50) then
-            if vsync_old = '1' and VGA_VS = '0' then
+        if rising_edge(pll_clk) then
+            if vsync_old = '1' and v_sync = '0' then
                 bg_update_active <= '1';
-                bg_count <= 0;
+                bg_count := 0;
             end if;
 
             if bg_update_active = '1' then
                 bg_we <= '1';
                 bg_write_addr <= std_logic_vector(to_unsigned(bg_count, 9));
 
+                if (bg_count mod 2 = 0) xor (bg_count / 20 mod 2 = 0) then
+                    bg_tile_in <= bg_tile_fsm;
+                else
+                    bg_tile_in <= not bg_tile_fsm;
+                end if;
+
                 if bg_count = 511 then
                     bg_update_active <= '0';
                 else
-                    bg_count <= bg_count + 1;
+                    bg_count := bg_count + 1;
                 end if;
             else
                 bg_we <= '0';
@@ -218,27 +301,6 @@ begin
         end if;
     end process;
 
-    -- process (pixel_x, video_active)
-    -- begin
-    --     if video_active = '1' then
-    --         if unsigned(pixel_x) < 213 then
-    --             red_s <= (others => '1'); -- Vermelho puro
-    --             green_s <= (others => '0');
-    --             blue_s <= (others => '0');
-    --         elsif unsigned(pixel_x) < 427 then
-    --             red_s <= (others => '0');
-    --             green_s <= (others => '1'); -- Verde puro
-    --             blue_s <= (others => '0');
-    --         else
-    --             red_s <= (others => '0');
-    --             green_s <= (others => '0'); -- Verde puro
-    --             blue_s <= (others => '1');
-    --         end if;
-    --     else
-    --         red_s <= (others => '0');
-    --         green_s <= (others => '0');
-    --         blue_s <= (others => '0');
-    --     end if;
-    -- end process;
+    VGA_VS <= v_sync;
 
 end Behavioral;

@@ -40,16 +40,16 @@ begin
             if vsync_old = '1' and v_sync = '0' then
                 
                 -- Lógica de Colisão em X
-                if (x_reg >= X_MAX) then
+                if (x_reg >= X_MAX - 1) then
                     dx <= -1; -- Bateu na direita, vai pra esquerda
-                elsif (x_reg <= 0) then
+                elsif (x_reg <= 1) then
                     dx <= 1;  -- Bateu na esquerda, vai pra direita
                 end if;
                 
                 -- Lógica de Colisão em Y
-                if (y_reg >= Y_MAX) then
+                if (y_reg >= Y_MAX - 1) then
                     dy <= -1; -- Bateu embaixo, vai pra cima
-                elsif (y_reg <= 0) then
+                elsif (y_reg <= 1) then
                     dy <= 1;  -- Bateu no topo, vai pra baixo
                 end if;
                 

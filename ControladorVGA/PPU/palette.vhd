@@ -4,76 +4,45 @@ USE IEEE.NUMERIC_STD.ALL;
 
 ENTITY palette_memory IS
   PORT (
-    id_color    : IN  STD_LOGIC_VECTOR (2 DOWNTO 0);   -- Entrada: id da cor
-    red        : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Saída: vermelho
-    green      : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   -- Saída: verde
-    blue       : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)    -- Saída: azul
+    id_color    : IN  STD_LOGIC_VECTOR (1 DOWNTO 0);
+    red        : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   
+    green      : OUT STD_LOGIC_VECTOR (7 DOWNTO 0);   
+    blue       : OUT STD_LOGIC_VECTOR (7 DOWNTO 0)    
   );
 END palette_memory; 
 
 ARCHITECTURE behavioral OF palette_memory IS
-  -- Criando um tipo de memória onde cada "linha" tem 128 bits de largura
-  TYPE rom_array IS ARRAY (0 TO 255) OF STD_LOGIC_VECTOR (7 DOWNTO 0);
-  
+  -- Array de 4 posições (Índices 0 a 3)
+  TYPE rom_array IS ARRAY (0 TO 3) OF STD_LOGIC_VECTOR (7 DOWNTO 0);
   
   SIGNAL red_intens: rom_array := (
-    0 => "00000000", -- cor 0: transparente (RGB 000-000-000)
-
-    1 => "00000000", -- cor 1: preto (RGB 000-000-000)
-    
-    2 => "11111111", -- cor 2: branco (RGB 111-111-111)
-
-    3 => "11111111", -- cor 3: vermelho (RGB 111-000-000)
-
-    4 => "00000000", -- cor 4: verde (RGB 000-111-000)
-
-    5 => "00000000", -- cor 5: azul (RGB 000-000-111)
-
-    -- Preenche os outros tiles com zeros (preto)
+    0 => "00001010", -- Cor 0: Preto (#0A0A0A)
+    1 => "11011010", -- Cor 1: Vermelho (#DA251D)
+    2 => "11111111", -- Cor 2: Branco (#FFFFFF)
+    3 => "11110000", -- Cor 3: Rosa (#F0ACA8)
     OTHERS => "00000000"
   );
 
   SIGNAL green_intens: rom_array := (
-
-    0 => "00000000", -- cor 0: transparente (RGB 000-000-000)
-
-    1 => "00000000", -- cor 1: preto (RGB 000-000-000)
-
-    2 => "11111111", -- cor 2: branco (RGB 111-111-111)
-
-    3 => "00000000", -- cor 3: vermelho (RGB 111-000-000)
-
-    4 => "11111111", -- cor 4: verde (RGB 000-111-000)
-
-    5 => "00000000", -- cor 5: azul (RGB 000-000-111)
-
-    -- Preenche os outros tiles com zeros (preto)
+    0 => "00001010", -- Cor 0: Preto
+    1 => "00100101", -- Cor 1: Vermelho
+    2 => "11111111", -- Cor 2: Branco
+    3 => "10101100", -- Cor 3: Rosa
     OTHERS => "00000000"
   );
 
   SIGNAL blue_intens: rom_array := (
-
-    0 => "00000000", -- cor 0: transparente (RGB 000-000-000)
-
-    1 => "00000000", -- cor 1: preto (RGB 000-000-000)
-
-    2 => "11111111", -- cor 2: branco (RGB 111-111-111)
-
-    3 => "00000000", -- cor 3: vermelho (RGB 111-000-000)
-
-    4 => "00000000", -- cor 4: verde (RGB 000-111-000)
-
-    5 => "11111111", -- cor 5: azul (RGB 000-000-111)
-
-    -- Preenche os outros tiles com zeros (preto)
+    0 => "00001010", -- Cor 0: Preto
+    1 => "00011101", -- Cor 1: Vermelho
+    2 => "11111111", -- Cor 2: Branco
+    3 => "10101000", -- Cor 3: Rosa
     OTHERS => "00000000"
   );
 
 BEGIN
-  -- O circuito entrega o bitmap completo instantaneamente baseado no ID
+  -- Saída combinacional
   red   <= red_intens(TO_INTEGER(UNSIGNED(id_color)));
   green <= green_intens(TO_INTEGER(UNSIGNED(id_color)));
   blue  <= blue_intens(TO_INTEGER(UNSIGNED(id_color)));
 
 END behavioral;
-
