@@ -13,6 +13,7 @@ ENTITY sprite_memory IS
         sprite_y    : IN  STD_LOGIC_VECTOR (9 DOWNTO 0);
         
         bitmap_out  : OUT STD_LOGIC_VECTOR (2 DOWNTO 0)
+		  clk 			: IN STD_LOGIC;
     );
 END sprite_memory;
 
