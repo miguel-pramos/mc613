@@ -21,7 +21,7 @@ entity fsm_dram_controller is
         ready : out std_logic;
 
         timer_clocks : out std_logic_vector(3 downto 0);
-        general_timer_on : out std_logic;
+        general_timer_on : out std_logic
 
     );
 end fsm_dram_controller;
