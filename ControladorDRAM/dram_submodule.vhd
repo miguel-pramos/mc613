@@ -6,8 +6,6 @@ entity dram_submodule is
     port (
         clk : in std_logic;
         rst : in std_logic;
-        addr : in std_logic_vector(25 downto 0);
-        data : inout std_logic_vector(7 downto 0); -- Inout para barramento bidirecional
         wEn : in std_logic;
         req : in std_logic;
 
@@ -43,10 +41,10 @@ begin
             general_timer_end => w_general_timer_end,
             refresh_timer_end => w_refresh_timer_end,
 
-            o_cas => o_cas,
-            o_ras => o_ras,
-            o_cs => o_cs,
-            o_we => o_we,
+            s_cas => o_cas,
+            s_ras => o_ras,
+            s_cs => o_cs,
+            s_we => o_we,
             ready => ready,
             timer_clocks => w_timer_clocks,
             general_timer_on => w_general_timer_on
