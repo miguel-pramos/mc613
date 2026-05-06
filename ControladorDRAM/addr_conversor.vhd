@@ -4,7 +4,7 @@ use ieee.std_logic_1164.all;
 entity addr_conversor is
     port (
         entrada : in std_logic_vector(9 downto 0);
-        saida : out std_logic_vector(25 downto 0);
+        saida : out std_logic_vector(25 downto 0)
     );
 end entity addr_conversor;
 

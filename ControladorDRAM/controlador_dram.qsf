@@ -44,17 +44,15 @@ set_global_assignment -name PROJECT_CREATION_TIME_DATE "16:41:04  APRIL 29, 2026
 set_global_assignment -name LAST_QUARTUS_VERSION "17.1.0 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 256
-set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (Verilog)"
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
-set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
-set_global_assignment -name QIP_FILE pll_143.qip
-set_global_assignment -name SIP_FILE pll_143.sip
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name EDA_TEST_BENCH_ENABLE_STATUS TEST_BENCH_MODE -section_id eda_simulation
-set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH tb_dram_submodule -section_id eda_simulation
+set_global_assignment -name EDA_NATIVELINK_SIMULATION_TEST_BENCH tb_dram_iface -section_id eda_simulation
 set_global_assignment -name EDA_TEST_BENCH_NAME tb_fsm_dram_controller -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id tb_fsm_dram_controller
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_fsm_dram_controller -section_id tb_fsm_dram_controller
@@ -67,6 +65,15 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_dram_submodule -sectio
 set_global_assignment -name EDA_TEST_BENCH_NAME tb_dram_iface -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id tb_dram_iface
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_dram_iface -section_id tb_dram_iface
+set_global_assignment -name VHDL_FILE iface_fsm.vhd
+set_global_assignment -name VHDL_FILE dram_iface.vhd
+set_global_assignment -name VHDL_FILE borda_subida.vhd
+set_global_assignment -name VHDL_FILE bin11_to_bcd4.vhd
+set_global_assignment -name VHDL_FILE bin2hex.vhd
+set_global_assignment -name VHDL_FILE addr_conversor.vhd
+set_global_assignment -name VHDL_FILE addr_change_detector.vhd
+set_global_assignment -name QIP_FILE pll_143.qip
+set_global_assignment -name SIP_FILE pll_143.sip
 set_global_assignment -name EDA_TEST_BENCH_FILE controller_fsm_tb.vhd -section_id tb_fsm_dram_controller
 set_global_assignment -name EDA_TEST_BENCH_FILE fsm_dram_controller.vhd -section_id tb_fsm_dram_controller
 set_global_assignment -name EDA_TEST_BENCH_FILE general_timer.vhd -section_id tb_dram_submodule
@@ -74,6 +81,12 @@ set_global_assignment -name EDA_TEST_BENCH_FILE refresh_timer.vhd -section_id tb
 set_global_assignment -name EDA_TEST_BENCH_FILE fsm_dram_controller.vhd -section_id tb_dram_submodule
 set_global_assignment -name EDA_TEST_BENCH_FILE dram_submodule.vhd -section_id tb_dram_submodule
 set_global_assignment -name EDA_TEST_BENCH_FILE dram_submodule_tb.vhd -section_id tb_dram_submodule
+set_global_assignment -name EDA_TEST_BENCH_FILE addr_conversor.vhd -section_id tb_dram_iface
+set_global_assignment -name EDA_TEST_BENCH_FILE addr_change_detector.vhd -section_id tb_dram_iface
+set_global_assignment -name EDA_TEST_BENCH_FILE bin2hex.vhd -section_id tb_dram_iface
+set_global_assignment -name EDA_TEST_BENCH_FILE bin11_to_bcd4.vhd -section_id tb_dram_iface
+set_global_assignment -name EDA_TEST_BENCH_FILE borda_subida.vhd -section_id tb_dram_iface
+set_global_assignment -name EDA_TEST_BENCH_FILE iface_fsm.vhd -section_id tb_dram_iface
 set_global_assignment -name EDA_TEST_BENCH_FILE dram_iface.vhd -section_id tb_dram_iface
 set_global_assignment -name EDA_TEST_BENCH_FILE tb_dram_iface.vhd -section_id tb_dram_iface
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

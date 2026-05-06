@@ -30,12 +30,12 @@ architecture Structural of dram_iface is
 
     signal w_switch_change : std_logic;
     signal w_write_req : std_logic;
-
+	 signal w_address_full : std_logic_vector(7 downto 0);
     -- Registrador para guardar o estado anterior das chaves de endereço (SW[9..4])
-    signal r_last_sw_addr : std_logic_vector(5 downto 0);
-
+    signal r_last_sw_addr : std_logic_vector(5 downto 0) := (others => '0');
+	 signal w_key3_inv : std_logic;
 begin
-
+		
     u_addr_detector : entity work.addr_change_detector
         port map(
             clk => clk,
@@ -45,10 +45,11 @@ begin
         );
 
     -- botão de avançar
+	 w_key3_inv <= not KEY(3);
     u_edge_detector : entity work.borda_subida
         port map(
             clk => clk,
-            entrada => not KEY(3),
+            entrada => w_key3_inv,
             saida => w_write_req
         );
 
