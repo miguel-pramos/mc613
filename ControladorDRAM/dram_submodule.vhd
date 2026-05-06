@@ -6,8 +6,8 @@ entity dram_submodule is
     port (
         clk : in std_logic;
         rst : in std_logic;
-        wEn : in std_logic;
-        req : in std_logic;
+        wEn : in std_logic := '0';
+        req : in std_logic := '0';
 
         o_cas : out std_logic;
         o_ras : out std_logic;
