@@ -6,9 +6,8 @@ entity fsm_dram_controller is
     port (
         -- Entradas --
         clk : in std_logic;
-        rst;
-        in std_logic;
-        write_enable : in std_logic;
+        rst : in std_logic;
+        wEn : in std_logic;
         req : in std_logic;
         general_timer_end : in std_logic;
         refresh_timer_end : in std_logic;
@@ -27,32 +26,118 @@ entity fsm_dram_controller is
 end fsm_dram_controller;
 
 architecture Behavioural of fsm_dram_controller is
-    type state_type is (INIT, -- QUEBRAR EM MAIS ESTADOS!!! 
-        READY, ACTIVATE, READ_S, WRITE_S, PRECHARGE,
-        REFRESH, WAIT_TRCD, WAIT_TCAS, WAIT_TDPL, WAIT_TRP, WAIT_TRC);
-    signal state, next_state : state_type;
+    type state_type is (
+        -- Estados de Inicialização
+        INIT_WAIT_100US, INIT_PRECHARGE, INIT_WAIT_TRP_INIT,
+        INIT_REFRESH_1, INIT_WAIT_TRC_1,
+        INIT_REFRESH_2, INIT_WAIT_TRC_2,
+        INIT_LOAD_MODE, INIT_WAIT_TMRD,
+        -- Estados de Operação Normal
+        READY_S, ACTIVATE, READ_S, WRITE_S, PRECHARGE,
+        REFRESH, WAIT_TRCD, WAIT_TCAS, WAIT_TDPL, WAIT_TRP, WAIT_TRC
+    );
 
+    signal state, next_state : state_type;
+    signal init_counter : integer range 0 to 14300 := 0;
 begin
     process (clk, rst)
     begin
         if rst = '1' then
-            state <= INIT;
+            state <= INIT_WAIT_100US;
+            init_counter <= 0;
         elsif rising_edge(clk) then
             state <= next_state;
+
+            -- Lógica do contador de 100us
+            if state = INIT_WAIT_100US then
+                if init_counter < 14300 then
+                    init_counter <= init_counter + 1;
+                end if;
+            else
+                init_counter <= 0;
+            end if;
         end if;
     end process;
 
-    process (state, write_enable, req, timer_end, refresh_timer_end)
+    process (state, wEn, req, general_timer_end, refresh_timer_end, init_counter)
     begin
+        next_state <= state;
+        general_timer_on <= '0';
+        timer_clocks <= (others => '0');
+        s_ras <= '1';
+        s_cas <= '1';
+        s_we <= '1';
         case state is
-            when READY =>
+                -- ==========================================
+                -- SEQUÊNCIA DE INICIALIZAÇÃO
+                -- ==========================================
+            when INIT_WAIT_100US =>
+                -- Aguarda 14300 ciclos de clock (100us a 50MHz)
+                if init_counter >= 14300 then
+                    next_state <= INIT_PRECHARGE;
+                end if;
+
+            when INIT_PRECHARGE =>
+                next_state <= INIT_WAIT_TRP_INIT;
+                s_ras <= '0';
+                s_cas <= '1';
+                s_we <= '0'; -- Cmd: PRECHARGE ALL
+
+            when INIT_WAIT_TRP_INIT =>
+                if general_timer_end = '1' then
+                    next_state <= INIT_REFRESH_1;
+                end if;
+                general_timer_on <= '1';
+                timer_clocks <= std_logic_vector(to_unsigned(3, 4));
+
+            when INIT_REFRESH_1 =>
+                next_state <= INIT_WAIT_TRC_1;
+                s_ras <= '0';
+                s_cas <= '0';
+                s_we <= '1'; -- Cmd: AUTO REFRESH
+
+            when INIT_WAIT_TRC_1 =>
+                if general_timer_end = '1' then
+                    next_state <= INIT_REFRESH_2;
+                end if;
+                general_timer_on <= '1';
+                timer_clocks <= std_logic_vector(to_unsigned(9, 4));
+
+            when INIT_REFRESH_2 =>
+                next_state <= INIT_WAIT_TRC_2;
+                s_ras <= '0';
+                s_cas <= '0';
+                s_we <= '1'; -- Cmd: AUTO REFRESH
+
+            when INIT_WAIT_TRC_2 =>
+                if general_timer_end = '1' then
+                    next_state <= INIT_LOAD_MODE;
+                end if;
+                general_timer_on <= '1';
+                timer_clocks <= std_logic_vector(to_unsigned(9, 4));
+
+            when INIT_LOAD_MODE =>
+                next_state <= INIT_WAIT_TMRD;
+                s_ras <= '0';
+                s_cas <= '0';
+                s_we <= '0'; -- Cmd: LOAD MODE REGISTER
+
+            when INIT_WAIT_TMRD =>
+                if general_timer_end = '1' then
+                    next_state <= READY_S;
+                end if;
+                general_timer_on <= '1';
+                timer_clocks <= std_logic_vector(to_unsigned(2, 4));
+
+                -- MODO NORMAL DE OPERAÇÃO
+            when READY_S =>
                 if refresh_timer_end = '1' then
                     next_state <= REFRESH;
                 elsif req = '1' then
                     next_state <= ACTIVATE;
                 else
-                    next_state <= READY;
-                end if
+                    next_state <= READY_S;
+                end if;
 
                 general_timer_on <= '0';
                 s_ras <= '1';
@@ -101,14 +186,14 @@ begin
 
             when WAIT_TRCD =>
                 if general_timer_end = '1' then
-                    if write_enable = '1' then
+                    if wEn = '1' then
                         next_state <= WRITE_S;
                     else
                         next_state <= READ_S;
-                    end if
+                    end if;
                 else
                     next_state <= WAIT_TRCD;
-                end if
+                end if;
 
                 timer_clocks <= std_logic_vector(to_unsigned(3, 4));
                 general_timer_on <= '1';
@@ -122,7 +207,7 @@ begin
                     next_state <= PRECHARGE;
                 else
                     next_state <= WAIT_TCAS;
-                end if
+                end if;
 
                 timer_clocks <= std_logic_vector(to_unsigned(3, 4));
                 general_timer_on <= '1';
@@ -131,12 +216,12 @@ begin
                 s_cas <= '1';
                 s_we <= '1';
 
-            when WAIT_TDLP =>
+            when WAIT_TDPL =>
                 if general_timer_end = '1' then
                     next_state <= PRECHARGE;
                 else
-                    next_state <= WAIT_TDLP;
-                end if
+                    next_state <= WAIT_TDPL;
+                end if;
 
                 timer_clocks <= std_logic_vector(to_unsigned(2, 4));
                 general_timer_on <= '1';
@@ -147,10 +232,10 @@ begin
 
             when WAIT_TRP =>
                 if general_timer_end = '1' then
-                    next_state <= READY;
+                    next_state <= READY_S;
                 else
                     next_state <= WAIT_TRP;
-                end if
+                end if;
 
                 timer_clocks <= std_logic_vector(to_unsigned(3, 4));
                 general_timer_on <= '1';
@@ -161,10 +246,10 @@ begin
 
             when WAIT_TRC =>
                 if general_timer_end = '1' then
-                    next_state <= READY;
+                    next_state <= READY_S;
                 else
                     next_state <= WAIT_TRC;
-                end if
+                end if;
 
                 timer_clocks <= std_logic_vector(to_unsigned(9, 4));
                 general_timer_on <= '1';
@@ -174,12 +259,13 @@ begin
                 s_we <= '1';
 
             when others =>
-                next_state <= INIT;
+                next_state <= INIT_WAIT_100US;
 
         end case;
     end process;
 
-    s_cs <= '1';
-    ready <= '1' when state = READY else
+    s_cs <= '0';
+    ready <= '1' when state = READY_S else
              '0';
+
 end Behavioural;

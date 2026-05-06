@@ -14,7 +14,7 @@ architecture behavioural of refresh_timer is
     signal ticks : integer range 0 to 1116 := 0;
 begin
 
-    process (clk, timer_on, max_ticks)
+    process (clk, timer_on)
     begin
         if timer_on = '0' then
             timer_end <= '0';
