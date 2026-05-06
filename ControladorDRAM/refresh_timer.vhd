@@ -22,6 +22,7 @@ begin
         elsif rising_edge(clk) then
             if ticks > 1040  then
                 timer_end <= '1';
+                ticks <= 0;
             else
                 timer_end <= '0';
                 ticks <= ticks + 1;
