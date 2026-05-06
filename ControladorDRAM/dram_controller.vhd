@@ -44,16 +44,16 @@ architecture Structural of dram_controller is
 
 begin
 
+    w_rst <= not KEY(0);
+	 
+	 
     u_pll : entity work.pll_143
         port map(
             refclk => CLOCK_50,
-            rst => rst,
+            rst => w_rst,
             outclk_0 => CLOCK_143
         );
-
-    -- Reset geral mapeado para o botão KEY[0] (ativo em baixo na placa)
-    w_rst <= not KEY(0);
-
+		  
     u_interface : entity work.dram_iface
         port map(
             clk => CLOCK_143,
@@ -77,14 +77,13 @@ begin
         port map(
             clk => CLOCK_143,
             rst => w_rst,
-            addr => w_address,
             wEn => w_wEn,
             req => w_req,
 
-            s_cas => DRAM_CAS_N,
-            s_ras => DRAM_RAS_N,
-            s_cs => DRAM_CS_N,
-            s_we => DRAM_WE_N,
+            o_cas => DRAM_CAS_N,
+            o_ras => DRAM_RAS_N,
+            o_cs => DRAM_CS_N,
+            o_we => DRAM_WE_N,
             ready => w_ready
         );
 

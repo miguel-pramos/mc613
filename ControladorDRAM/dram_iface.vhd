@@ -30,7 +30,7 @@ architecture Structural of dram_iface is
 
     signal w_switch_change : std_logic;
     signal w_write_req : std_logic;
-	 signal w_address_full : std_logic_vector(25 downto 0);
+	signal w_address_full : std_logic_vector(25 downto 0);
 
     -- Registrador para guardar o estado anterior das chaves de endereço (SW[9..4])
     signal r_last_sw_addr : std_logic_vector(5 downto 0);
@@ -79,10 +79,10 @@ begin
 
     -- displays
     u_hex0 : entity work.bin2hex
-        port map(BIN => SW(3 downto 0), HEX => HEX0);
+        port map(BIN => data_in(3 downto 0), HEX => HEX0);
 
     u_hex1 : entity work.bin2hex
-        port map(BIN => data_in(3 downto 0), HEX => HEX1);
+        port map(BIN => data_in(7 downto 4), HEX => HEX1);
 
     u_hex4 : entity work.bin2hex
         port map(BIN => w_address_full(3 downto 0), HEX => HEX4);

@@ -11,7 +11,11 @@ end entity addr_conversor;
 architecture rtl of addr_conversor is
     signal entrada_reg : std_logic := '0';
 begin
-    saida(25) <= entrada(9);
-    saida(23 downto 21) <= entrada(8 downto 6);
-    saida(1 downto 0) <= entrada(5 downto 4);
+    process(entrada)
+    begin
+        saida <= (others => '0');
+        saida(25)           <= entrada(9);
+        saida(23 downto 21) <= entrada(8 downto 6);
+        saida(1 downto 0)   <= entrada(5 downto 4);
+    end process;
 end architecture rtl;

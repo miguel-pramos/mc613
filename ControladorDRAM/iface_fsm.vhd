@@ -38,15 +38,13 @@ begin
 
         case state is
             when S_READY =>
-                -- Prioridade: Se o endereço mudou e não é escrita, vai para Read.
-                -- Importante: Só sai de READY se o controlador estiver pronto (ready = '1')
                 if ready = '1' then
-                    if switch_change = '1' then
-                        if write_req = '1' then
-                            next_state <= S_REQ_WRITE;
-                        else
-                            next_state <= S_REQ_READ;
-                        end if;
+                    -- 1. Prioridade total para a Escrita (Botão)
+                    if write_req = '1' then
+                        next_state <= S_REQ_WRITE;
+                    -- 2. Se não houver escrita, verifica se o endereço mudou (Leitura)
+                    elsif switch_change = '1' then
+                        next_state <= S_REQ_READ;
                     end if;
                 end if;
 
@@ -61,12 +59,10 @@ begin
                 next_state <= S_WAIT_WRITE;
 
             when S_WAIT_READ =>
-                req <= '1'; 
+                req <= '1';
                 enable_op <= '0';
                 if ready = '1' then
                     next_state <= S_READY;
-                else
-                    next_state <= S_WAIT_READ;
                 end if;
 
             when S_WAIT_WRITE =>
@@ -74,13 +70,10 @@ begin
                 enable_op <= '1';
                 if ready = '1' then
                     next_state <= S_READY;
-                else
-                    next_state <= S_WAIT_WRITE;
                 end if;
 
             when others =>
                 next_state <= S_READY;
         end case;
     end process;
-
 end behavioral;
