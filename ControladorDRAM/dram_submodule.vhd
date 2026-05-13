@@ -13,7 +13,9 @@ entity dram_submodule is
         o_ras : out std_logic;
         o_cs : out std_logic;
         o_we : out std_logic;
-        ready : out std_logic
+        ready : out std_logic;
+        o_addr_sel : out std_logic;
+        o_latch_data : out std_logic
     );
 end dram_submodule;
 
@@ -47,7 +49,9 @@ begin
             s_we => o_we,
             ready => ready,
             timer_clocks => w_timer_clocks,
-            general_timer_on => w_general_timer_on
+            general_timer_on => w_general_timer_on,
+            s_addr_sel => o_addr_sel,
+            latch_data => o_latch_data
         );
 
     -- temporizador geral

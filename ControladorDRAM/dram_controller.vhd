@@ -17,7 +17,7 @@ entity dram_controller is
         -- Pinos Físicos da SDRAM (IS42S16320D)
         DRAM_CLK : out std_logic;
         DRAM_CKE : out std_logic;
-        DRAM_ADDR : out std_logic_vector(12 downto 0);
+        DRAM_ADDR : out std_logic_vector(23 downto 0);
         DRAM_BA : out std_logic_vector(1 downto 0);
         DRAM_CS_N : out std_logic;
         DRAM_CAS_N : out std_logic;
@@ -39,21 +39,22 @@ architecture Structural of dram_controller is
     signal w_req : std_logic;
     signal w_wEn : std_logic;
     signal w_ready : std_logic;
+    signal w_addr_sel : std_logic;
+	 signal w_latch_data : std_logic;
 
     signal CLOCK_143 : std_logic;
 
 begin
 
     w_rst <= not KEY(0);
-	 
-	 
+
     u_pll : entity work.pll_143
         port map(
             refclk => CLOCK_50,
             rst => w_rst,
             outclk_0 => CLOCK_143
         );
-		  
+
     u_interface : entity work.dram_iface
         port map(
             clk => CLOCK_143,
@@ -84,8 +85,18 @@ begin
             o_ras => DRAM_RAS_N,
             o_cs => DRAM_CS_N,
             o_we => DRAM_WE_N,
-            ready => w_ready
+            ready => w_ready,
+				o_latch_data => w_latch_data
         );
+
+    process (CLOCK_143)
+    begin
+        if rising_edge(CLOCK_143) then
+            if w_latch_data = '1' then
+                w_data_in <= DRAM_DQ(7 downto 0);
+            end if;
+        end if;
+    end process;
 
     -- Clock e Clock Enable da memória sempre ativos
     DRAM_CLK <= CLOCK_143;
@@ -105,15 +116,12 @@ begin
     DRAM_DQ(15 downto 8) <= (others => '0') when (w_wEn = '1') else
                             (others => 'Z');
 
-    -- A leitura é um fio direto do barramento físico para o sinal interno
-    w_data_in <= DRAM_DQ(7 downto 0);
-
     -- =========================================================
     -- 4. Roteamento de Endereço (Row/Col/Bank)
     -- =========================================================
     -- (Atenção: Num projeto avançado, o controlador multiplexa ROW e COL em tempos diferentes. 
     -- Para este esqueleto simplificado, passaremos o mapeamento direto de acordo com as chaves)
-    DRAM_ADDR(12 downto 0) <= w_address(12 downto 0);
+    DRAM_ADDR(23 downto 0) <= w_address(23 downto 0);
     DRAM_BA(1 downto 0) <= w_address(25 downto 24);
 
 end Structural;

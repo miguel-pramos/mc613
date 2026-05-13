@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEMA5F31C6
-set_global_assignment -name TOP_LEVEL_ENTITY top_level_iface_test
+set_global_assignment -name TOP_LEVEL_ENTITY dram_controller
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 17.1.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "16:41:04  APRIL 29, 2026"
 set_global_assignment -name LAST_QUARTUS_VERSION "17.1.0 Lite Edition"
@@ -320,13 +320,6 @@ set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_dram_submodule -sectio
 set_global_assignment -name EDA_TEST_BENCH_NAME tb_dram_iface -section_id eda_simulation
 set_global_assignment -name EDA_DESIGN_INSTANCE_NAME NA -section_id tb_dram_iface
 set_global_assignment -name EDA_TEST_BENCH_MODULE_NAME tb_dram_iface -section_id tb_dram_iface
-set_global_assignment -name VHDL_FILE iface_fsm.vhd
-set_global_assignment -name VHDL_FILE dram_iface.vhd
-set_global_assignment -name VHDL_FILE borda_subida.vhd
-set_global_assignment -name VHDL_FILE bin11_to_bcd4.vhd
-set_global_assignment -name VHDL_FILE bin2hex.vhd
-set_global_assignment -name VHDL_FILE addr_conversor.vhd
-set_global_assignment -name VHDL_FILE addr_change_detector.vhd
 set_global_assignment -name QIP_FILE pll_143.qip
 set_global_assignment -name SIP_FILE pll_143.sip
 set_global_assignment -name EDA_TEST_BENCH_FILE controller_fsm_tb.vhd -section_id tb_fsm_dram_controller

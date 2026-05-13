@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all; -- Necessário para conversão de endereços
 
 entity top_level_iface_test is
     port (
@@ -12,7 +13,7 @@ entity top_level_iface_test is
         HEX4     : out std_logic_vector(6 downto 0);
         HEX5     : out std_logic_vector(6 downto 0);
         
-        LEDR     : out std_logic_vector(9 downto 0) -- LEDs para monitorizar sinais
+        LEDR     : out std_logic_vector(9 downto 0) 
     );
 end top_level_iface_test;
 
@@ -26,33 +27,43 @@ architecture Structural of top_level_iface_test is
     signal w_wEn      : std_logic;
     signal w_ready    : std_logic;
 
-signal r_mem_data : std_logic_vector(7 downto 0) := (others => '0');
+    -- SIMULAÇÃO DE MEMÓRIA COM MÚLTIPLOS REGISTRADORES
+    -- Criamos um array de 4 posições (0 a 3)
+    type memory_mock is array (0 to 3) of std_logic_vector(7 downto 0);
+    signal r_registers : memory_mock := (others => (others => '0'));
+    
+    -- Índice para selecionar o registrador baseado nos bits 1 e 0 do endereço
+    signal w_addr_idx : integer range 0 to 3;
+
 begin
 
     w_rst <= not KEY(0);
-    w_ready <= '1'; -- Mantemos ready em 1 para simplificar o teste inicial
+    w_ready <= '1'; 
     
-    -- O dado que a interface "lê" vem do nosso registrador interno
-    w_data_in <= r_mem_data;
+    -- Converte os 2 bits menos significativos do endereço em um índice inteiro
+    -- Esses bits correspondem aos seus switches SW[5..4]
+    w_addr_idx <= to_integer(unsigned(w_address(1 downto 0)));
 
-    -- Processo que simula a escrita na memória
+    -- LEITURA: O dado lido depende de qual "endereço" está selecionado
+    w_data_in <= r_registers(w_addr_idx);
+
+    -- ESCRITA: Processo que simula o armazenamento em diferentes posições
     process(CLOCK_50, w_rst)
     begin
         if w_rst = '1' then
-            r_mem_data <= (others => '0');
+            r_registers <= (others => (others => '0'));
         elsif rising_edge(CLOCK_50) then
-            -- Se a interface pedir uma escrita (req=1 e wEn=1)
+            -- Se a interface pedir uma escrita, salva no registrador selecionado pelo índice
             if w_req = '1' and w_wEn = '1' then
-                r_mem_data <= w_data_out; -- Salva o dado no registrador
+                r_registers(w_addr_idx) <= w_data_out;
             end if;
         end if;
     end process;
 
-   
-    -- Monitorização visual nos LEDs
-    LEDR(0) <= w_req;   -- Acende quando há uma requisição (pulso rápido)
-    LEDR(1) <= w_wEn;   -- Indica se a operação é Escrita (1) ou Leitura (0)
-    LEDR(9) <= w_ready; -- Confirma que o "controlador" está pronto
+    -- Monitorização
+    LEDR(0) <= w_req;   
+    LEDR(1) <= w_wEn;   
+    LEDR(9) <= w_ready; 
 
     -- Instanciação da Interface
     u_interface : entity work.dram_iface
@@ -65,7 +76,6 @@ begin
             HEX1     => HEX1,
             HEX4     => HEX4,
             HEX5     => HEX5,
-            
             address  => w_address,
             data_in  => w_data_in,
             data_out => w_data_out,

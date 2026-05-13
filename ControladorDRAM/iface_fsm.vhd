@@ -66,10 +66,10 @@ begin
                 end if;
 
             when S_WAIT_WRITE =>
-                req <= '1';
+                req <= '1'; 
                 enable_op <= '1';
                 if ready = '1' then
-                    next_state <= S_READY;
+                    next_state <= S_REQ_READ;
                 end if;
 
             when others =>

@@ -18,10 +18,12 @@ entity fsm_dram_controller is
         s_cs : out std_logic;
         s_we : out std_logic;
         ready : out std_logic;
+        latch_data : out std_logic;
 
         timer_clocks : out std_logic_vector(3 downto 0);
-        general_timer_on : out std_logic
-
+        general_timer_on : out std_logic;
+        s_addr_sel : out std_logic 
+    
     );
 end fsm_dram_controller;
 
@@ -67,6 +69,8 @@ begin
         s_ras <= '1';
         s_cas <= '1';
         s_we <= '1';
+        s_addr_sel <= '0';
+        latch_data <= '0';
         case state is
                 -- ==========================================
                 -- SEQUÊNCIA DE INICIALIZAÇÃO
@@ -146,7 +150,8 @@ begin
 
             when ACTIVATE =>
                 next_state <= WAIT_TRCD;
-
+                
+                s_addr_sel <= '0'; 
                 general_timer_on <= '0';
                 s_ras <= '0';
                 s_cas <= '1';
@@ -154,7 +159,9 @@ begin
 
             when READ_S =>
                 next_state <= WAIT_TCAS;
-
+                
+                latch_data <= '1';
+                s_addr_sel <= '1';
                 general_timer_on <= '0';
                 s_ras <= '1';
                 s_cas <= '0';
@@ -163,6 +170,7 @@ begin
             when WRITE_S =>
                 next_state <= WAIT_TDPL;
 
+                s_addr_sel <= '1';
                 general_timer_on <= '0';
                 s_ras <= '1';
                 s_cas <= '0';
@@ -211,7 +219,8 @@ begin
 
                 timer_clocks <= std_logic_vector(to_unsigned(3, 4));
                 general_timer_on <= '1';
-
+                
+                s_addr_sel <= '1';
                 s_ras <= '1';
                 s_cas <= '1';
                 s_we <= '1';
@@ -225,7 +234,8 @@ begin
 
                 timer_clocks <= std_logic_vector(to_unsigned(2, 4));
                 general_timer_on <= '1';
-
+                
+                s_addr_sel <= '1';
                 s_ras <= '1';
                 s_cas <= '1';
                 s_we <= '1';
